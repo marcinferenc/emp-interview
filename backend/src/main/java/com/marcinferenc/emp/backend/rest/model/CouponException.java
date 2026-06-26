@@ -1,8 +1,10 @@
 package com.marcinferenc.emp.backend.rest.model;
 
 import com.marcinferenc.emp.backend.rest.ErrorCode;
+import lombok.Getter;
 import lombok.ToString;
 
+@Getter
 @ToString
 public class CouponException extends RuntimeException {
     private final ErrorCode errorCode;
