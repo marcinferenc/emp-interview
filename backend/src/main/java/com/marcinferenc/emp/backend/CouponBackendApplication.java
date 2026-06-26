@@ -10,7 +10,7 @@ public class CouponBackendApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(CouponBackendApplication.class, args);
-		log.info("application started");
+		log.info("application started - 3");
 	}
 
 }

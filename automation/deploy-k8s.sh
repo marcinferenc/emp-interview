@@ -11,6 +11,9 @@ PORT_FORWARD="${PORT_FORWARD:-false}"
 
 cd "${PROJECT_DIR}" || exit
 
+docker image rm emp-backend:latest
+docker image rm emp-persistence:latest
+
 docker build -f backend/Dockerfile -t emp-backend .
 docker build -f persistence/Dockerfile -t emp-persistence .
 
@@ -32,6 +35,9 @@ helm upgrade --install "${RELEASE_NAME}" "${CHART_DIR}" \
   --namespace "${NAMESPACE}" \
   --create-namespace \
   --set namespace="${NAMESPACE}"
+
+kubectl rollout restart deployment/emp-persistence --namespace "${NAMESPACE}"
+kubectl rollout restart deployment/emp-backend --namespace "${NAMESPACE}"
 
 kubectl rollout status deployment/emp-persistence --namespace "${NAMESPACE}"
 kubectl rollout status deployment/emp-backend --namespace "${NAMESPACE}"
