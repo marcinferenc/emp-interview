@@ -1,14 +1,13 @@
 package com.marcinferenc.emp.backend.rest.model;
 
-import lombok.Builder;
-import lombok.Value;
+import lombok.AccessLevel;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.time.Instant;
-
-@Builder
-@Value
+@Data
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class CouponCreationRequestDTO {
-    String code;
-    Instant createdAt;
-    Long usageLimitCount;
+    String couponCode;
+    String countryCode;
+    Long claimLimitCount;
 }

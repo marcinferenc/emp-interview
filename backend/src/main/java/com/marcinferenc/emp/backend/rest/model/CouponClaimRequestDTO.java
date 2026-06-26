@@ -1,11 +1,12 @@
 package com.marcinferenc.emp.backend.rest.model;
 
-import lombok.Builder;
-import lombok.Value;
+import lombok.AccessLevel;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Builder
-@Value
+@Data
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class CouponClaimRequestDTO {
     String couponCode;
-    String userEmail;
+    String userEmailId;
 }
