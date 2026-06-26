@@ -9,5 +9,5 @@ import lombok.NoArgsConstructor;
 public class CouponCreationRequestDTO {
     String couponCode;
     String countryCode;
-    Long claimLimitCount;
+    Integer claimLimitCount;
 }
