@@ -1,6 +1,7 @@
 package com.marcinferenc.emp.backend.rest.service;
 
 import com.marcinferenc.emp.backend.rest.ErrorCode;
+import com.marcinferenc.emp.backend.rest.model.CouponClaimRequestDTO;
 import com.marcinferenc.emp.backend.rest.model.CouponCreationRequestDTO;
 import com.marcinferenc.emp.backend.rest.model.CouponException;
 import org.junit.jupiter.api.Test;
@@ -23,6 +24,13 @@ class CouponValidationServiceImplTest {
     }
 
     @Test
+    void shouldPassClaimValidationForValidRequest() {
+        CouponClaimRequestDTO request = createValidClaimRequest();
+
+        assertThatCode(() -> service.validate(request)).doesNotThrowAnyException();
+    }
+
+    @Test
     void shouldPassValidationForLowerCaseIsoCountryCode() {
         CouponCreationRequestDTO request = createValidRequest();
         request.setCountryCode("pl");
@@ -32,7 +40,12 @@ class CouponValidationServiceImplTest {
 
     @Test
     void shouldThrowValidationErrorForNullRequest() {
-        assertValidationError(null);
+        assertValidationError((CouponCreationRequestDTO) null);
+    }
+
+    @Test
+    void shouldThrowClaimValidationErrorForNullRequest() {
+        assertValidationError((CouponClaimRequestDTO) null);
     }
 
     @ParameterizedTest
@@ -41,6 +54,26 @@ class CouponValidationServiceImplTest {
     void shouldThrowValidationErrorWhenCouponCodeDoesNotContainLetterOrDigit(String couponCode) {
         CouponCreationRequestDTO request = createValidRequest();
         request.setCouponCode(couponCode);
+
+        assertValidationError(request);
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {" ", "-", "_"})
+    void shouldThrowClaimValidationErrorWhenCouponCodeDoesNotContainLetterOrDigit(String couponCode) {
+        CouponClaimRequestDTO request = createValidClaimRequest();
+        request.setCouponCode(couponCode);
+
+        assertValidationError(request);
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {"plainaddress", "@example.com", "user@", "user@example", "user..name@example.com"})
+    void shouldThrowClaimValidationErrorWhenUserEmailIdIsInvalid(String userEmailId) {
+        CouponClaimRequestDTO request = createValidClaimRequest();
+        request.setUserEmailId(userEmailId);
 
         assertValidationError(request);
     }
@@ -87,6 +120,12 @@ class CouponValidationServiceImplTest {
                 assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.VALIDATION_ERROR));
     }
 
+    private void assertValidationError(CouponClaimRequestDTO request) {
+        assertThatThrownBy(() -> service.validate(request))
+            .isInstanceOfSatisfying(CouponException.class, exception ->
+                assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.VALIDATION_ERROR));
+    }
+
     private CouponCreationRequestDTO createValidRequest() {
         CouponCreationRequestDTO request = new TestCouponCreationRequestDTO();
         request.setCouponCode("SUMMER2026");
@@ -95,6 +134,16 @@ class CouponValidationServiceImplTest {
         return request;
     }
 
+    private CouponClaimRequestDTO createValidClaimRequest() {
+        CouponClaimRequestDTO request = new TestCouponClaimRequestDTO();
+        request.setCouponCode("SUMMER2026");
+        request.setUserEmailId("user@example.com");
+        return request;
+    }
+
     private static class TestCouponCreationRequestDTO extends CouponCreationRequestDTO {
+    }
+
+    private static class TestCouponClaimRequestDTO extends CouponClaimRequestDTO {
     }
 }

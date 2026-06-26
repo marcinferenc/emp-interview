@@ -43,7 +43,17 @@ public class CouponValidationServiceImpl implements CouponValidationService {
 
     @Override
     public void validate(CouponClaimRequestDTO claimRequest) {
+        if (claimRequest == null) {
+            throwValidationError("Coupon claim request is required");
+        }
 
+        if (!hasLetterOrDigit(claimRequest.getCouponCode())) {
+            throwValidationError("Coupon code must contain at least one letter or digit");
+        }
+
+        if (!emailValidationService.isValidEmailAddress(claimRequest.getUserEmailId())) {
+            throwValidationError("User email id must be a valid email address");
+        }
     }
 
     private boolean hasLetterOrDigit(String couponCode) {
