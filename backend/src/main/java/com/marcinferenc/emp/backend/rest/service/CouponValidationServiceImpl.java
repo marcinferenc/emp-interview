@@ -4,6 +4,7 @@ import com.marcinferenc.emp.backend.rest.ErrorCode;
 import com.marcinferenc.emp.backend.rest.model.CouponClaimRequestDTO;
 import com.marcinferenc.emp.backend.rest.model.CouponCreationRequestDTO;
 import com.marcinferenc.emp.backend.rest.model.CouponException;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -13,10 +14,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 @Slf4j
 public class CouponValidationServiceImpl implements CouponValidationService {
     private static final Set<String> ISO_COUNTRY_CODES = Arrays.stream(Locale.getISOCountries())
         .collect(Collectors.toUnmodifiableSet());
+
+    private final EmailValidationService emailValidationService;
 
     @Override
     public void validate(CouponCreationRequestDTO creationRequest) {

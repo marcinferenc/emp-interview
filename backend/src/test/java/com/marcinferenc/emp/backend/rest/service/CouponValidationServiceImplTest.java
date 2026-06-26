@@ -13,7 +13,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class CouponValidationServiceImplTest {
-    private final CouponValidationServiceImpl service = new CouponValidationServiceImpl();
+    private final CouponValidationServiceImpl service = new CouponValidationServiceImpl(new EmailValidationServiceImpl());
 
     @Test
     void shouldPassValidationForValidRequest() {
