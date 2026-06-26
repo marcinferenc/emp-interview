@@ -1,0 +1,36 @@
+namespace: emp-dev
+
+backend:
+  replicas: 2
+  image:
+    repository: emp-backend
+    tag: latest
+    pullPolicy: IfNotPresent
+  containerPort: 8080
+  service:
+    port: 8081
+  env:
+    postgresUrl: jdbc:postgresql://emp-persistence:5432/emp
+    postgresUser: emp
+    postgresPassword: emp
+
+ingress:
+  enabled: true
+  className: ""
+  annotations: {}
+
+persistence:
+  replicas: 1
+  image:
+    repository: emp-persistence
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    port: 5432
+  database:
+    name: emp
+    user: emp
+    password: emp
+  persistence:
+    size: 1Gi
+    storageClassName: ""

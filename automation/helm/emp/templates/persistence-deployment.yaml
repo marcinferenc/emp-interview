@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: emp-persistence
+  namespace: {{ .Values.namespace | quote }}
+  labels:
+    {{- include "emp.labels" . | nindent 4 }}
+    app.kubernetes.io/component: persistence
+spec:
+  replicas: {{ .Values.persistence.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: emp-persistence
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: emp-persistence
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/component: persistence
+    spec:
+      containers:
+        - name: emp-persistence
+          image: "{{ .Values.persistence.image.repository }}:{{ .Values.persistence.image.tag }}"
+          imagePullPolicy: {{ .Values.persistence.image.pullPolicy }}
+          ports:
+            - name: postgres
+              containerPort: {{ .Values.persistence.service.port }}
+          env:
+            - name: POSTGRES_DB
+              value: {{ .Values.persistence.database.name | quote }}
+            - name: POSTGRES_USER
+              value: {{ .Values.persistence.database.user | quote }}
+            - name: POSTGRES_PASSWORD
+              value: {{ .Values.persistence.database.password | quote }}
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: emp-persistence-data
