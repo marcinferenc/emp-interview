@@ -1,9 +1,5 @@
 package com.marcinferenc.emp.backend.rest.controller;
 
-import com.marcinferenc.emp.backend.domain.model.CouponClaimRequestDO;
-import com.marcinferenc.emp.backend.domain.model.CouponClaimResponseDO;
-import com.marcinferenc.emp.backend.domain.service.CouponDomainService;
-import com.marcinferenc.emp.backend.rest.converter.CouponClaimRequestConverter;
 import com.marcinferenc.emp.backend.rest.model.CouponClaimRequestDTO;
 import com.marcinferenc.emp.backend.rest.model.CouponClaimResponseDTO;
 import com.marcinferenc.emp.backend.rest.model.CouponCreationRequestDTO;
@@ -21,16 +17,10 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class CouponRestController {
     private final CouponApiService couponApiService;
-    private final CouponDomainService couponDomainService;
-    private final CouponClaimRequestConverter couponClaimRequestConverter;
 
     @PostMapping(path = "/claim", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public CouponClaimResponseDTO claimCoupon(@RequestBody CouponClaimRequestDTO couponClaimRequest) {
         logRequest(couponClaimRequest);
-
-        CouponClaimRequestDO couponClaimRequestDO = couponClaimRequestConverter.toDomainObject(couponClaimRequest);
-        CouponClaimResponseDO couponClaimResponseDO = couponDomainService.claim(couponClaimRequestDO);
-
         return couponApiService.claim(couponClaimRequest);
     }
 
