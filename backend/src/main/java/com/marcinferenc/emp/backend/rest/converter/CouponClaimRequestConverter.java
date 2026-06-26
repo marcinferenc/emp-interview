@@ -2,7 +2,6 @@ package com.marcinferenc.emp.backend.rest.converter;
 
 import com.marcinferenc.emp.backend.domain.model.CouponClaimRequestDO;
 import com.marcinferenc.emp.backend.rest.model.CouponClaimRequestDTO;
-import com.marcinferenc.emp.backend.rest.model.CouponCreationRequestDTO;
 import org.springframework.stereotype.Component;
 
 @Component

@@ -1,5 +1,6 @@
 package com.marcinferenc.emp.backend.rest.service;
 
+import com.marcinferenc.emp.backend.domain.service.CouponDomainService;
 import com.marcinferenc.emp.backend.rest.model.CouponClaimRequestDTO;
 import com.marcinferenc.emp.backend.rest.model.CouponClaimResponseDTO;
 import com.marcinferenc.emp.backend.rest.model.CouponCreationRequestDTO;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class CouponApiServiceImpl implements CouponApiService {
     private final CouponValidationService couponValidationService;
+    private final CouponDomainService couponDomainService;
 
     @Override
     public CouponClaimResponseDTO claim(CouponClaimRequestDTO couponClaimRequest) {
