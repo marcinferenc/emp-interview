@@ -7,7 +7,10 @@ import com.marcinferenc.emp.backend.domain.model.CouponCreationResponseDO;
 import com.marcinferenc.emp.backend.port.CouponPersistencePort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.Validate;
 import org.springframework.stereotype.Service;
+
+import java.time.Instant;
 
 @Service
 @RequiredArgsConstructor
@@ -19,6 +22,7 @@ public class CouponDomainServiceImpl implements CouponDomainService {
     public CouponClaimResponseDO claim(CouponClaimRequestDO couponClaimRequestDO) {
         validateCouponCodeAllLowerCaseChars(couponClaimRequestDO.getCouponCode());
 
+
         return CouponClaimResponseDO.builder()
             .message("coupon claimed OK")
             .build();
@@ -27,10 +31,20 @@ public class CouponDomainServiceImpl implements CouponDomainService {
     @Override
     public CouponCreationResponseDO create(CouponCreationRequestDO couponCreationRequestDO) {
         validateCouponCodeAllLowerCaseChars(couponCreationRequestDO.getCouponCode());
+        validateBeforeDataPopulation(couponCreationRequestDO);
+
+        couponCreationRequestDO.setClaimCount(0);
+        couponCreationRequestDO.setCreatedAt(Instant.now());
 
         return CouponCreationResponseDO.builder()
             .message("coupon created OK")
             .build();
+    }
+
+    private void validateBeforeDataPopulation(CouponCreationRequestDO couponCreationRequestDO) {
+        Validate.isTrue(couponCreationRequestDO.getClaimCount() == null);
+        Validate.isTrue(couponCreationRequestDO.getCreatedAt() == null);
+
     }
 
     private void validateCouponCodeAllLowerCaseChars(String couponCode) {

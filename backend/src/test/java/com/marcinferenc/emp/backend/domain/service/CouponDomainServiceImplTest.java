@@ -9,6 +9,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Instant;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -26,6 +29,48 @@ class CouponDomainServiceImplTest {
             .build();
 
         assertThatCode(() -> service.create(request)).doesNotThrowAnyException();
+    }
+
+    @Test
+    void shouldInitializeClaimCountAndCreatedAtWhenCreatingCoupon() {
+        CouponCreationRequestDO request = CouponCreationRequestDO.builder()
+            .couponCode("summer2026")
+            .countryCode("PL")
+            .claimLimitCount(10)
+            .build();
+        Instant beforeCreate = Instant.now();
+
+        service.create(request);
+
+        Instant afterCreate = Instant.now();
+        assertThat(request.getClaimCount()).isZero();
+        assertThat(request.getCreatedAt()).isBetween(beforeCreate, afterCreate);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenClaimCountIsAlreadyPopulatedBeforeCreatingCoupon() {
+        CouponCreationRequestDO request = CouponCreationRequestDO.builder()
+            .couponCode("summer2026")
+            .countryCode("PL")
+            .claimLimitCount(10)
+            .claimCount(1)
+            .build();
+
+        assertThatThrownBy(() -> service.create(request))
+            .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenCreatedAtIsAlreadyPopulatedBeforeCreatingCoupon() {
+        CouponCreationRequestDO request = CouponCreationRequestDO.builder()
+            .couponCode("summer2026")
+            .countryCode("PL")
+            .claimLimitCount(10)
+            .createdAt(Instant.now())
+            .build();
+
+        assertThatThrownBy(() -> service.create(request))
+            .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
