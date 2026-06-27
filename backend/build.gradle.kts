@@ -26,6 +26,9 @@ dependencies {
 
 	// Source: https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
 	implementation("org.apache.commons:commons-lang3:3.20.0")
+
+	// Source: https://mvnrepository.com/artifact/org.mockito/mockito-core
+	testImplementation("org.mockito:mockito-core:5.23.0")
 }
 
 tasks.withType<Test> {
