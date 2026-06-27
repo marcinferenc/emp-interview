@@ -1,5 +1,7 @@
 package com.marcinferenc.emp.backend.port;
 
-public interface CouponPersistencePort {
+import com.marcinferenc.emp.backend.domain.model.CouponCreationRequestDO;
 
+public interface CouponPersistencePort {
+    void create(CouponCreationRequestDO couponCreationRequestDO);
 }

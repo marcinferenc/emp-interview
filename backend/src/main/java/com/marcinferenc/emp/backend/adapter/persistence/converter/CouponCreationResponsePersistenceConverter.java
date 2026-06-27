@@ -4,6 +4,7 @@ import com.marcinferenc.emp.backend.adapter.persistence.model.CouponCreationResp
 import com.marcinferenc.emp.backend.domain.model.CouponCreationResponseDO;
 import org.springframework.stereotype.Component;
 
+@Component
 public class CouponCreationResponsePersistenceConverter {
 
     public CouponCreationResponseDO toDomainObject(CouponCreationResponsePO persistenceObject) {

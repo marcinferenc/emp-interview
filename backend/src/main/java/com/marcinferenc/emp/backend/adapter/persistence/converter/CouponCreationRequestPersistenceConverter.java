@@ -4,6 +4,7 @@ import com.marcinferenc.emp.backend.adapter.persistence.model.CouponCreationRequ
 import com.marcinferenc.emp.backend.domain.model.CouponCreationRequestDO;
 import org.springframework.stereotype.Component;
 
+@Component
 public class CouponCreationRequestPersistenceConverter {
 
     public CouponCreationRequestDO toDomainObject(CouponCreationRequestPO persistenceObject) {
@@ -15,6 +16,8 @@ public class CouponCreationRequestPersistenceConverter {
             .couponCode(persistenceObject.getCouponCode())
             .countryCode(persistenceObject.getCountryCode())
             .claimLimitCount(persistenceObject.getClaimLimitCount())
+            .claimCount(persistenceObject.getClaimCount())
+            .createdAt(persistenceObject.getCreatedAt())
             .build();
     }
 
@@ -27,6 +30,8 @@ public class CouponCreationRequestPersistenceConverter {
             .couponCode(domainObject.getCouponCode())
             .countryCode(domainObject.getCountryCode())
             .claimLimitCount(domainObject.getClaimLimitCount())
+            .claimCount(domainObject.getClaimCount())
+            .createdAt(domainObject.getCreatedAt())
             .build();
     }
 }
