@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 public class CouponDomainServiceImpl implements CouponDomainService {
     @Override
     public CouponClaimResponseDO claim(CouponClaimRequestDO couponClaimRequestDO) {
+        validateCouponCodeAllLowerCaseChars(couponClaimRequestDO.getCouponCode());
+
         return CouponClaimResponseDO.builder()
             .message("coupon claimed OK")
             .build();
@@ -19,8 +21,16 @@ public class CouponDomainServiceImpl implements CouponDomainService {
 
     @Override
     public CouponCreationResponseDO create(CouponCreationRequestDO couponCreationRequestDO) {
+        validateCouponCodeAllLowerCaseChars(couponCreationRequestDO.getCouponCode());
+
         return CouponCreationResponseDO.builder()
             .message("coupon created OK")
             .build();
+    }
+
+    private void validateCouponCodeAllLowerCaseChars(String couponCode) {
+        if (couponCode != null && couponCode.chars().anyMatch(Character::isUpperCase)) {
+            throw new IllegalArgumentException("Coupon code must not contain upper case letters");
+        }
     }
 }
