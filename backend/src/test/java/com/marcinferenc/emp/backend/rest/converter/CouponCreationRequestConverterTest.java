@@ -18,9 +18,19 @@ class CouponCreationRequestConverterTest {
 
         CouponCreationRequestDO domainObject = converter.toDomainObject(dto);
 
-        assertThat(domainObject.getCouponCode()).isEqualTo("SUMMER2026");
+        assertThat(domainObject.getCouponCode()).isEqualTo("summer2026");
         assertThat(domainObject.getCountryCode()).isEqualTo("PL");
         assertThat(domainObject.getClaimLimitCount()).isEqualTo(10);
+    }
+
+    @Test
+    void shouldConvertCouponCodeToLowerCaseWhenConvertingDtoToDomainObject() {
+        CouponCreationRequestDTO dto = new CouponCreationRequestDTO();
+        dto.setCouponCode("SuMmEr2026");
+
+        CouponCreationRequestDO domainObject = converter.toDomainObject(dto);
+
+        assertThat(domainObject.getCouponCode()).isEqualTo("summer2026");
     }
 
     @Test

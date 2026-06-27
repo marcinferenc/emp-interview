@@ -4,6 +4,8 @@ import com.marcinferenc.emp.backend.domain.model.CouponClaimRequestDO;
 import com.marcinferenc.emp.backend.rest.model.CouponClaimRequestDTO;
 import org.springframework.stereotype.Component;
 
+import java.util.Locale;
+
 @Component
 public class CouponClaimRequestConverter {
 
@@ -13,7 +15,7 @@ public class CouponClaimRequestConverter {
         }
 
         return CouponClaimRequestDO.builder()
-            .couponCode(dto.getCouponCode())
+            .couponCode(toLowerCase(dto.getCouponCode()))
             .userEmailId(dto.getUserEmailId())
             .build();
     }
@@ -27,5 +29,9 @@ public class CouponClaimRequestConverter {
         res.setCouponCode(domainObject.getCouponCode());
         res.setUserEmailId(domainObject.getUserEmailId());
         return res;
+    }
+
+    private String toLowerCase(String value) {
+        return value == null ? null : value.toLowerCase(Locale.ROOT);
     }
 }
