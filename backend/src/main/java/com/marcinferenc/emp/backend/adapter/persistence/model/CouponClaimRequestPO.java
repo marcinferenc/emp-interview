@@ -1,4 +1,4 @@
-package com.marcinferenc.emp.backend.adapter.peristence.model;
+package com.marcinferenc.emp.backend.adapter.persistence.model;
 
 import lombok.Builder;
 import lombok.Value;

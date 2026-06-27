@@ -1,6 +1,6 @@
 package com.marcinferenc.emp.backend.port;
 
-import com.marcinferenc.emp.backend.adapter.peristence.service.CouponPersistenceService;
+import com.marcinferenc.emp.backend.adapter.persistence.service.CouponPersistenceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
