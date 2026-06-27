@@ -6,8 +6,8 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class CouponClaimResponseConverterTest {
-    private final CouponClaimResponseConverter converter = new CouponClaimResponseConverter();
+class CouponClaimResponseRestConverterTest {
+    private final CouponClaimResponseRestConverter converter = new CouponClaimResponseRestConverter();
 
     @Test
     void shouldConvertDtoToDomainObject() {

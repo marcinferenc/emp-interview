@@ -5,7 +5,7 @@ import com.marcinferenc.emp.backend.rest.model.CouponClaimResponseDTO;
 import org.springframework.stereotype.Component;
 
 @Component
-public class CouponClaimResponseConverter {
+public class CouponClaimResponseRestConverter {
 
     public CouponClaimResponseDO toDomainObject(CouponClaimResponseDTO dto) {
         if (dto == null) {

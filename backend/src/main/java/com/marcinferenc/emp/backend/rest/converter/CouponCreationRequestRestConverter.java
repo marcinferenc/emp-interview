@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 import java.util.Locale;
 
 @Component
-public class CouponCreationRequestConverter {
+public class CouponCreationRequestRestConverter {
 
     public CouponCreationRequestDO toDomainObject(CouponCreationRequestDTO dto) {
         if (dto == null) {

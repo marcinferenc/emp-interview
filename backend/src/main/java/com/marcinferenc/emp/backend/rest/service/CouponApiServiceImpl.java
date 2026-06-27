@@ -5,10 +5,10 @@ import com.marcinferenc.emp.backend.domain.model.CouponClaimResponseDO;
 import com.marcinferenc.emp.backend.domain.model.CouponCreationRequestDO;
 import com.marcinferenc.emp.backend.domain.model.CouponCreationResponseDO;
 import com.marcinferenc.emp.backend.domain.service.CouponDomainService;
-import com.marcinferenc.emp.backend.rest.converter.CouponClaimRequestConverter;
-import com.marcinferenc.emp.backend.rest.converter.CouponClaimResponseConverter;
-import com.marcinferenc.emp.backend.rest.converter.CouponCreationRequestConverter;
-import com.marcinferenc.emp.backend.rest.converter.CouponCreationResponseConverter;
+import com.marcinferenc.emp.backend.rest.converter.CouponClaimRequestRestConverter;
+import com.marcinferenc.emp.backend.rest.converter.CouponClaimResponseRestConverter;
+import com.marcinferenc.emp.backend.rest.converter.CouponCreationRequestRestConverter;
+import com.marcinferenc.emp.backend.rest.converter.CouponCreationResponseRestConverter;
 import com.marcinferenc.emp.backend.rest.model.CouponClaimRequestDTO;
 import com.marcinferenc.emp.backend.rest.model.CouponClaimResponseDTO;
 import com.marcinferenc.emp.backend.rest.model.CouponCreationRequestDTO;
@@ -24,20 +24,20 @@ public class CouponApiServiceImpl implements CouponApiService {
     private final CouponValidationService couponValidationService;
     private final CouponDomainService couponDomainService;
 
-    private final CouponClaimRequestConverter couponClaimRequestConverter;
-    private final CouponClaimResponseConverter couponClaimResponseConverter;
+    private final CouponClaimRequestRestConverter couponClaimRequestRestConverter;
+    private final CouponClaimResponseRestConverter couponClaimResponseRestConverter;
 
-    private final CouponCreationRequestConverter couponCreationRequestConverter;
-    private final CouponCreationResponseConverter couponCreationResponseConverter;
+    private final CouponCreationRequestRestConverter couponCreationRequestRestConverter;
+    private final CouponCreationResponseRestConverter couponCreationResponseRestConverter;
 
 
     @Override
     public CouponClaimResponseDTO claim(CouponClaimRequestDTO couponClaimRequest) {
         couponValidationService.validate(couponClaimRequest);
 
-        CouponClaimRequestDO couponClaimRequestDO = couponClaimRequestConverter.toDomainObject(couponClaimRequest);
+        CouponClaimRequestDO couponClaimRequestDO = couponClaimRequestRestConverter.toDomainObject(couponClaimRequest);
         CouponClaimResponseDO couponClaimResponseDO = couponDomainService.claim(couponClaimRequestDO);
-        CouponClaimResponseDTO result = couponClaimResponseConverter.toDto(couponClaimResponseDO);
+        CouponClaimResponseDTO result = couponClaimResponseRestConverter.toDto(couponClaimResponseDO);
 
         log.debug("Coupon claim response: {}", result);
         return result;
@@ -47,9 +47,9 @@ public class CouponApiServiceImpl implements CouponApiService {
     public CouponCreationResponseDTO create(CouponCreationRequestDTO couponCreationRequest) {
         couponValidationService.validate(couponCreationRequest);
 
-        CouponCreationRequestDO couponCreationRequestDO = couponCreationRequestConverter.toDomainObject(couponCreationRequest);
+        CouponCreationRequestDO couponCreationRequestDO = couponCreationRequestRestConverter.toDomainObject(couponCreationRequest);
         CouponCreationResponseDO couponCreationResponseDO = couponDomainService.create(couponCreationRequestDO);
-        CouponCreationResponseDTO result = couponCreationResponseConverter.toDto(couponCreationResponseDO);
+        CouponCreationResponseDTO result = couponCreationResponseRestConverter.toDto(couponCreationResponseDO);
 
         log.debug("Coupon creation response: {}", result);
         return result;
