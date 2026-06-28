@@ -6,16 +6,23 @@ import com.marcinferenc.emp.backend.adapter.persistence.converter.CouponCreation
 import com.marcinferenc.emp.backend.adapter.persistence.converter.CouponCreationResponsePersistenceConverter;
 import com.marcinferenc.emp.backend.adapter.persistence.model.CouponBO;
 import com.marcinferenc.emp.backend.adapter.persistence.model.CouponClaimRequestPO;
+import com.marcinferenc.emp.backend.adapter.persistence.model.CouponClaimResponsePO;
 import com.marcinferenc.emp.backend.adapter.persistence.model.CouponCreationRequestPO;
 import com.marcinferenc.emp.backend.adapter.persistence.model.CouponCreationResponsePO;
 import com.marcinferenc.emp.backend.domain.model.CouponClaimRequestDO;
 import com.marcinferenc.emp.backend.domain.model.CouponClaimResponseDO;
 import com.marcinferenc.emp.backend.domain.model.CouponCreationRequestDO;
 import com.marcinferenc.emp.backend.domain.model.CouponCreationResponseDO;
+import com.marcinferenc.emp.backend.rest.ErrorCode;
+import com.marcinferenc.emp.backend.rest.model.CouponException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Service
 @RequiredArgsConstructor
@@ -56,8 +63,62 @@ public class CouponPersistenceServiceImpl implements CouponPersistenceService {
     public CouponClaimResponseDO claim(CouponClaimRequestDO couponClaimRequestDO) {
         CouponClaimRequestPO couponClaimRequestPO = couponClaimRequestPersistenceConverter.toPersistenceObject(couponClaimRequestDO);
 
-        
+        final String couponCode = couponClaimRequestPO.getCouponCode();
+        Optional<CouponBO> couponByCode = couponRepository.findByCouponCode(couponCode);
+        AtomicReference<CouponClaimResponsePO> result = new AtomicReference<>();
 
-        return null;
+        couponByCode.ifPresentOrElse(
+            couponBO -> {
+                log.info("Found coupon: {}", couponBO);
+                Integer currentClaimCount = couponBO.getClaimCount();
+
+                result.set(CouponClaimResponsePO.builder()
+                    .message(String.format("Coupon claimed OK: %d -> %d", currentClaimCount, ++currentClaimCount))
+                    .build());
+
+                if (currentClaimCount >= couponBO.getClaimLimitCount()) {
+                    throwClaimLimitExceeded(couponBO);
+                }
+                CouponBO updatedCoupon = deepCopyWithClaimCountIncreased(couponBO);
+                couponRepository.save(updatedCoupon);
+
+            },
+            () -> throwCouponNotFound(couponCode));
+
+        return couponClaimResponsePersistenceConverter.toDomainObject(result.get());
+    }
+
+    protected List<CouponBO> findAll() {
+        List<CouponBO> allCouponBOs = couponRepository.findAll();
+        if (log.isDebugEnabled()) {
+            log.debug("Found coupons: {}", allCouponBOs);
+        }
+
+        return allCouponBOs;
+    }
+    //------------------------------------------------------
+
+    private void throwCouponNotFound(String couponByCode) {
+        throw new CouponException(
+            ErrorCode.COUPON_NOT_FOUND,
+            String.format("coupon not found: %s", couponByCode));
+    }
+
+    private void throwClaimLimitExceeded(CouponBO couponBO) {
+        throw new CouponException(
+            ErrorCode.CLAIM_LIMIT_EXCEEDED,
+            String.format("coupon claim limit exceeded, %s", couponBO)
+        );
+    }
+
+        private CouponBO deepCopyWithClaimCountIncreased(CouponBO couponBO) {
+        return CouponBO.builder()
+            .id(couponBO.getId())
+            .couponCode(couponBO.getCouponCode())
+            .countryCode(couponBO.getCountryCode())
+            .claimLimitCount(couponBO.getClaimLimitCount())
+            .claimCount(couponBO.getClaimCount() + 1)
+            .createdAt(couponBO.getCreatedAt())
+            .build();
     }
 }

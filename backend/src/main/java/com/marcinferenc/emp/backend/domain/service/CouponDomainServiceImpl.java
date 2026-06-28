@@ -21,10 +21,7 @@ public class CouponDomainServiceImpl implements CouponDomainService {
     @Override
     public CouponClaimResponseDO claim(CouponClaimRequestDO couponClaimRequestDO) {
         validateCouponCodeAllLowerCaseChars(couponClaimRequestDO.getCouponCode());
-
-        return CouponClaimResponseDO.builder()
-            .message("coupon claimed OK")
-            .build();
+        return couponPersistencePort.claim(couponClaimRequestDO);
     }
 
     @Override

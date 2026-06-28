@@ -48,11 +48,11 @@ public class CouponValidationServiceImpl implements CouponValidationService {
         }
 
         if (!hasLetterOrDigit(claimRequest.getCouponCode())) {
-            throwValidationError("Coupon code must contain at least one letter or digit");
+            throwValidationError("Coupon code must contain at least one letter or digit, received: " + claimRequest.getCouponCode());
         }
 
         if (!emailValidationService.isValidEmailAddress(claimRequest.getUserEmailId())) {
-            throwValidationError("User email id must be a valid email address");
+            throwValidationError("User email id must be a valid email address, received: " + claimRequest.getUserEmailId());
         }
     }
 
