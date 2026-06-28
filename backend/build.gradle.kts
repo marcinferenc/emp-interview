@@ -10,6 +10,13 @@ java {
 	}
 }
 
+val integrationTest = sourceSets.create("integrationTest") {
+	java.srcDir("src/integrationTest/java")
+	resources.srcDir("src/integrationTest/resources")
+	compileClasspath += sourceSets.main.get().output + configurations.testRuntimeClasspath.get()
+	runtimeClasspath += output + compileClasspath
+}
+
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
@@ -33,6 +40,20 @@ dependencies {
 	testImplementation("org.mockito:mockito-core:5.23.0")
 }
 
+configurations[integrationTest.implementationConfigurationName].extendsFrom(configurations.testImplementation.get())
+configurations[integrationTest.runtimeOnlyConfigurationName].extendsFrom(configurations.testRuntimeOnly.get())
+configurations[integrationTest.compileOnlyConfigurationName].extendsFrom(configurations.testCompileOnly.get())
+configurations[integrationTest.annotationProcessorConfigurationName].extendsFrom(configurations.testAnnotationProcessor.get())
+
 tasks.withType<Test> {
+	useJUnitPlatform()
+}
+
+tasks.register<Test>("integrationTest") {
+	description = "Runs integration tests against the dev PostgreSQL database."
+	group = "verification"
+	testClassesDirs = integrationTest.output.classesDirs
+	classpath = integrationTest.runtimeClasspath
+	shouldRunAfter(tasks.test)
 	useJUnitPlatform()
 }
