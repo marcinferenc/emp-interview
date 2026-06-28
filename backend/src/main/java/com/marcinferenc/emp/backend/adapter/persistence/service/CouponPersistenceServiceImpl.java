@@ -26,6 +26,7 @@ public class CouponPersistenceServiceImpl implements CouponPersistenceService {
 
         CouponBO couponBO = CouponBO.builder()
             .couponCode(couponCreationRequestPO.getCouponCode())
+            .countryCode(couponCreationRequestPO.getCountryCode())
             .claimLimitCount(couponCreationRequestPO.getClaimLimitCount())
             .claimCount(couponCreationRequestPO.getClaimCount())
             .createdAt(couponCreationRequestPO.getCreatedAt())

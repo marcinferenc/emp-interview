@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 import java.time.Instant;
 
 @Entity
-@Table(name = "COUPON")
+@Table(name = "coupon")
 @Builder
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
