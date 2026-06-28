@@ -32,10 +32,11 @@ public class CouponPersistenceServiceImpl implements CouponPersistenceService {
             .createdAt(couponCreationRequestPO.getCreatedAt())
             .build();
 
-        couponRepository.save(couponBO);
+        CouponBO persistedCoupon = couponRepository.save(couponBO);
+        log.info("Saved coupon: {}", persistedCoupon);
 
         return CouponCreationResponseDO.builder()
-            .message("coupon created OK")
+            .message(String.format("Coupon created OK: %s", persistedCoupon))
             .build();
     }
 }
