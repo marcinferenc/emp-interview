@@ -76,7 +76,7 @@ public class CouponPersistenceServiceImpl implements CouponPersistenceService {
                     .message(String.format("Coupon claimed OK: %d -> %d", currentClaimCount, ++currentClaimCount))
                     .build());
 
-                if (currentClaimCount >= couponBO.getClaimLimitCount()) {
+                if (currentClaimCount > couponBO.getClaimLimitCount()) {
                     throwClaimLimitExceeded(couponBO);
                 }
                 CouponBO updatedCoupon = deepCopyWithClaimCountIncreased(couponBO);
