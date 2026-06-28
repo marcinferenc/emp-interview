@@ -36,11 +36,7 @@ public class CouponDomainServiceImpl implements CouponDomainService {
         couponCreationRequestDO.setClaimCount(0);
         couponCreationRequestDO.setCreatedAt(Instant.now());
 
-        couponPersistencePort.create(couponCreationRequestDO);
-
-        return CouponCreationResponseDO.builder()
-            .message("coupon created OK")
-            .build();
+        return couponPersistencePort.create(couponCreationRequestDO);
     }
 
     private void validateBeforeDataPopulation(CouponCreationRequestDO couponCreationRequestDO) {

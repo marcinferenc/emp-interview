@@ -1,7 +1,8 @@
 package com.marcinferenc.emp.backend.adapter.persistence.service;
 
 import com.marcinferenc.emp.backend.domain.model.CouponCreationRequestDO;
+import com.marcinferenc.emp.backend.domain.model.CouponCreationResponseDO;
 
 public interface CouponPersistenceService {
-    void create(CouponCreationRequestDO couponCreationRequestDO);
+    CouponCreationResponseDO create(CouponCreationRequestDO couponCreationRequestDO);
 }
