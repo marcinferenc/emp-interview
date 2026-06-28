@@ -1,8 +1,10 @@
 package com.marcinferenc.emp.backend.adapter.persistence.service;
 
 import com.marcinferenc.emp.backend.adapter.persistence.converter.CouponCreationRequestPersistenceConverter;
+import com.marcinferenc.emp.backend.adapter.persistence.converter.CouponCreationResponsePersistenceConverter;
 import com.marcinferenc.emp.backend.adapter.persistence.model.CouponBO;
 import com.marcinferenc.emp.backend.adapter.persistence.model.CouponCreationRequestPO;
+import com.marcinferenc.emp.backend.adapter.persistence.model.CouponCreationResponsePO;
 import com.marcinferenc.emp.backend.domain.model.CouponCreationRequestDO;
 import com.marcinferenc.emp.backend.domain.model.CouponCreationResponseDO;
 import jakarta.transaction.Transactional;
@@ -17,7 +19,7 @@ public class CouponPersistenceServiceImpl implements CouponPersistenceService {
     private final CouponRepository couponRepository;
 
     private final CouponCreationRequestPersistenceConverter couponCreationRequestPersistenceConverter;
-    private final CouponCreationRequestPersistenceConverter couponCreationResponsePersistenceConverter;
+    private final CouponCreationResponsePersistenceConverter couponCreationResponsePersistenceConverter;
 
     @Override
     @Transactional
@@ -35,8 +37,10 @@ public class CouponPersistenceServiceImpl implements CouponPersistenceService {
         CouponBO persistedCoupon = couponRepository.save(couponBO);
         log.info("Saved coupon: {}", persistedCoupon);
 
-        return CouponCreationResponseDO.builder()
+        CouponCreationResponsePO couponCreationResponsePO = CouponCreationResponsePO.builder()
             .message(String.format("Coupon created OK: %s", persistedCoupon))
             .build();
+
+        return couponCreationResponsePersistenceConverter.toDomainObject(couponCreationResponsePO);
     }
 }
