@@ -1,6 +1,8 @@
 package com.marcinferenc.emp.backend.port;
 
 import com.marcinferenc.emp.backend.adapter.persistence.service.CouponPersistenceService;
+import com.marcinferenc.emp.backend.domain.model.CouponClaimRequestDO;
+import com.marcinferenc.emp.backend.domain.model.CouponClaimResponseDO;
 import com.marcinferenc.emp.backend.domain.model.CouponCreationRequestDO;
 import com.marcinferenc.emp.backend.domain.model.CouponCreationResponseDO;
 import lombok.RequiredArgsConstructor;
@@ -16,5 +18,10 @@ public class CouponPersistenceAdapterPort implements CouponPersistencePort {
     @Override
     public CouponCreationResponseDO create(CouponCreationRequestDO couponCreationRequestDO) {
         return couponPersistenceService.create(couponCreationRequestDO);
+    }
+
+    @Override
+    public CouponClaimResponseDO claim(CouponClaimRequestDO couponClaimRequestDO) {
+        return couponPersistenceService.claim(couponClaimRequestDO);
     }
 }

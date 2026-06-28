@@ -1,10 +1,15 @@
 package com.marcinferenc.emp.backend.adapter.persistence.service;
 
+import com.marcinferenc.emp.backend.adapter.persistence.converter.CouponClaimRequestPersistenceConverter;
+import com.marcinferenc.emp.backend.adapter.persistence.converter.CouponClaimResponsePersistenceConverter;
 import com.marcinferenc.emp.backend.adapter.persistence.converter.CouponCreationRequestPersistenceConverter;
 import com.marcinferenc.emp.backend.adapter.persistence.converter.CouponCreationResponsePersistenceConverter;
 import com.marcinferenc.emp.backend.adapter.persistence.model.CouponBO;
+import com.marcinferenc.emp.backend.adapter.persistence.model.CouponClaimRequestPO;
 import com.marcinferenc.emp.backend.adapter.persistence.model.CouponCreationRequestPO;
 import com.marcinferenc.emp.backend.adapter.persistence.model.CouponCreationResponsePO;
+import com.marcinferenc.emp.backend.domain.model.CouponClaimRequestDO;
+import com.marcinferenc.emp.backend.domain.model.CouponClaimResponseDO;
 import com.marcinferenc.emp.backend.domain.model.CouponCreationRequestDO;
 import com.marcinferenc.emp.backend.domain.model.CouponCreationResponseDO;
 import jakarta.transaction.Transactional;
@@ -15,14 +20,17 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional
 public class CouponPersistenceServiceImpl implements CouponPersistenceService {
     private final CouponRepository couponRepository;
 
     private final CouponCreationRequestPersistenceConverter couponCreationRequestPersistenceConverter;
     private final CouponCreationResponsePersistenceConverter couponCreationResponsePersistenceConverter;
 
+    private final CouponClaimRequestPersistenceConverter couponClaimRequestPersistenceConverter;
+    private final CouponClaimResponsePersistenceConverter couponClaimResponsePersistenceConverter;
+
     @Override
-    @Transactional
     public CouponCreationResponseDO create(CouponCreationRequestDO couponCreationRequestDO) {
         CouponCreationRequestPO couponCreationRequestPO = couponCreationRequestPersistenceConverter.toPersistenceObject(couponCreationRequestDO);
 
@@ -42,5 +50,14 @@ public class CouponPersistenceServiceImpl implements CouponPersistenceService {
             .build();
 
         return couponCreationResponsePersistenceConverter.toDomainObject(couponCreationResponsePO);
+    }
+
+    @Override
+    public CouponClaimResponseDO claim(CouponClaimRequestDO couponClaimRequestDO) {
+        CouponClaimRequestPO couponClaimRequestPO = couponClaimRequestPersistenceConverter.toPersistenceObject(couponClaimRequestDO);
+
+        
+
+        return null;
     }
 }
