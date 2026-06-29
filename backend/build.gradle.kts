@@ -57,3 +57,15 @@ tasks.register<Test>("integrationTest") {
 	shouldRunAfter(tasks.test)
 	useJUnitPlatform()
 }
+
+tasks.check {
+	dependsOn(tasks.named("integrationTest"))
+}
+
+tasks.register("printPostgresEnvVars") {
+	doLast {
+		println(System.getenv("POSTGRES_URL"))
+		println(System.getenv("POSTGRES_USER"))
+		println(System.getenv("POSTGRES_PASSWORD"))
+	}
+}
