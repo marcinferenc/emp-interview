@@ -1,12 +1,11 @@
 package com.marcinferenc.emp.backend.port;
 
-import com.marcinferenc.emp.backend.adapter.persistence.model.CouponCreationResponsePO;
-import com.marcinferenc.emp.backend.adapter.persistence.model.CouponResponseStatusPO;
 import com.marcinferenc.emp.backend.adapter.persistence.service.CouponPersistenceService;
 import com.marcinferenc.emp.backend.domain.model.CouponClaimRequestDO;
 import com.marcinferenc.emp.backend.domain.model.CouponClaimResponseDO;
 import com.marcinferenc.emp.backend.domain.model.CouponCreationRequestDO;
 import com.marcinferenc.emp.backend.domain.model.CouponCreationResponseDO;
+import com.marcinferenc.emp.backend.domain.model.CouponDO;
 import com.marcinferenc.emp.backend.domain.model.CouponResponseStatusDO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,5 +33,10 @@ public class CouponPersistenceAdapterPort implements CouponPersistencePort {
     @Override
     public CouponClaimResponseDO claim(CouponClaimRequestDO couponClaimRequestDO) {
         return couponPersistenceService.claim(couponClaimRequestDO);
+    }
+
+    @Override
+    public CouponDO find(String couponCode, String countryCode) {
+        return couponPersistenceService.find(couponCode, countryCode);
     }
 }

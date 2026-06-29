@@ -25,9 +25,10 @@ public class CouponDomainServiceImpl implements CouponDomainService {
     public CouponClaimResponseDO claim(CouponClaimRequestDO couponClaimRequestDO) {
         validateCouponCodeAllLowerCaseChars(couponClaimRequestDO.getCouponCode());
 
-        //translate IP address to country code
         String countryCode = ipInfoPort.getCountryCode(couponClaimRequestDO.getIpAddress());
         couponClaimRequestDO.setCountryCode(countryCode);
+
+
 
         return couponPersistencePort.claim(couponClaimRequestDO);
     }

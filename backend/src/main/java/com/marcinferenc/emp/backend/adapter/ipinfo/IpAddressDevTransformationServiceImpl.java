@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @Profile("dev")
-public class IpAddressDevTransformationService implements IpAddressTransformationService {
+public class IpAddressDevTransformationServiceImpl implements IpAddressTransformationService {
     @Override
     public String transform(String ipAddress) {
         return "188.122.0.88";

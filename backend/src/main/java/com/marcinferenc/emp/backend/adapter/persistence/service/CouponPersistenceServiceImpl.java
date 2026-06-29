@@ -14,6 +14,7 @@ import com.marcinferenc.emp.backend.domain.model.CouponClaimRequestDO;
 import com.marcinferenc.emp.backend.domain.model.CouponClaimResponseDO;
 import com.marcinferenc.emp.backend.domain.model.CouponCreationRequestDO;
 import com.marcinferenc.emp.backend.domain.model.CouponCreationResponseDO;
+import com.marcinferenc.emp.backend.domain.model.CouponDO;
 import com.marcinferenc.emp.backend.rest.ErrorCode;
 import com.marcinferenc.emp.backend.rest.model.CouponException;
 import jakarta.transaction.Transactional;
@@ -98,6 +99,11 @@ public class CouponPersistenceServiceImpl implements CouponPersistenceService {
             log.error("Error while claiming coupon {}", couponClaimRequestDO.getCouponCode(), e);
             throw e;
         }
+    }
+
+    @Override
+    public CouponDO find(String couponCode, String countryCode) {
+        return null;
     }
 
     protected List<CouponBO> findAll() {

@@ -21,7 +21,7 @@ class IpInfoServiceImplTest {
         server.createContext("/lite/8.8.8.8", exchange -> {
             requestPath.set(exchange.getRequestURI().getPath());
             requestQuery.set(exchange.getRequestURI().getQuery());
-            byte[] response = "{\"country_code\":\"US\"}".getBytes(StandardCharsets.UTF_8);
+            byte[] response = "{\"country_code\":\"PL\"}".getBytes(StandardCharsets.UTF_8);
             exchange.sendResponseHeaders(200, response.length);
             exchange.getResponseBody().write(response);
             exchange.close();
@@ -31,10 +31,10 @@ class IpInfoServiceImplTest {
         try {
             String apiUrl = "http://localhost:" + server.getAddress().getPort() + "/lite/";
             IpInfoServiceImpl service = new IpInfoServiceImpl(
-                "2c1f2fe3c5c410",
+                "49ru49454o4fvh",
                 apiUrl,
                 HttpClientBuilder.create().build(),
-                new IpAddressDevTransformationService()
+                new IpAddressDevTransformationServiceImpl()
             );
 
             String countryCode = service.getCountryCode("8.8.8.8");
