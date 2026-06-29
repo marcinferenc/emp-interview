@@ -38,6 +38,9 @@ dependencies {
 
 	// Source: https://mvnrepository.com/artifact/org.mockito/mockito-core
 	testImplementation("org.mockito:mockito-core:5.23.0")
+
+	// Source: https://mvnrepository.com/artifact/org.apache.httpcomponents.client5/httpclient5
+	implementation("org.apache.httpcomponents.client5:httpclient5:5.6.1")
 }
 
 configurations[integrationTest.implementationConfigurationName].extendsFrom(configurations.testImplementation.get())
