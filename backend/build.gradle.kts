@@ -19,6 +19,7 @@ val integrationTest = sourceSets.create("integrationTest") {
 
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
+	implementation("org.springframework.boot:spring-boot-starter-cache")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-flyway")
 	implementation("org.springframework.boot:spring-boot-starter-webmvc")
@@ -41,6 +42,8 @@ dependencies {
 
 	// Source: https://mvnrepository.com/artifact/org.apache.httpcomponents.client5/httpclient5
 	implementation("org.apache.httpcomponents.client5:httpclient5:5.6.1")
+
+	implementation("com.github.ben-manes.caffeine:caffeine")
 }
 
 configurations[integrationTest.implementationConfigurationName].extendsFrom(configurations.testImplementation.get())
