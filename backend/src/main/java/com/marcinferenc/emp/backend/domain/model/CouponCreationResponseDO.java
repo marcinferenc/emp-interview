@@ -6,5 +6,6 @@ import lombok.Value;
 @Builder
 @Value
 public class CouponCreationResponseDO {
+    CouponResponseStatusDO status;
     String message;
 }

@@ -19,6 +19,7 @@ import com.marcinferenc.emp.backend.rest.model.CouponException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -49,12 +50,22 @@ public class CouponPersistenceServiceImpl implements CouponPersistenceService {
             .createdAt(couponCreationRequestPO.getCreatedAt())
             .build();
 
-        CouponBO persistedCoupon = couponRepository.save(couponBO);
-        log.info("Saved coupon: {}", persistedCoupon);
+        CouponBO persistedCoupon = null;
+        CouponCreationResponsePO couponCreationResponsePO = null;
+        try {
+            persistedCoupon = couponRepository.save(couponBO);
+            log.info("Saved coupon: {}", persistedCoupon);
+            couponCreationResponsePO = CouponCreationResponsePO.builder()
+                .status(CouponResponseStatusPO.SUCCESS)
+                .message(String.format("Coupon created OK: %s", persistedCoupon))
+                .build();
 
-        CouponCreationResponsePO couponCreationResponsePO = CouponCreationResponsePO.builder()
-            .message(String.format("Coupon created OK: %s", persistedCoupon))
-            .build();
+        } catch (DataIntegrityViolationException e) {
+            couponCreationResponsePO = CouponCreationResponsePO.builder()
+                .status(CouponResponseStatusPO.FAILURE)
+                .message(String.format("Coupon NOT created, already exists: %s", couponCreationRequestDO.getCouponCode()))
+                .build();
+        }
 
         return couponCreationResponsePersistenceConverter.toDomainObject(couponCreationResponsePO);
     }
