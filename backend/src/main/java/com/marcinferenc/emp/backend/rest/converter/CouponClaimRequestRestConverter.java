@@ -10,12 +10,17 @@ import java.util.Locale;
 public class CouponClaimRequestRestConverter {
 
     public CouponClaimRequestDO toDomainObject(CouponClaimRequestDTO dto) {
+        return toDomainObject(dto, null);
+    }
+
+    public CouponClaimRequestDO toDomainObject(CouponClaimRequestDTO dto, String ipAddress) {
         if (dto == null) {
             return null;
         }
 
         return CouponClaimRequestDO.builder()
             .couponCode(toLowerCase(dto.getCouponCode()))
+            .ipAddress(ipAddress)
             .userEmailId(dto.getUserEmailId())
             .build();
     }

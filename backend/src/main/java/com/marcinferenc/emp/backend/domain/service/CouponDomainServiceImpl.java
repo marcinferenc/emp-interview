@@ -5,6 +5,7 @@ import com.marcinferenc.emp.backend.domain.model.CouponClaimResponseDO;
 import com.marcinferenc.emp.backend.domain.model.CouponCreationRequestDO;
 import com.marcinferenc.emp.backend.domain.model.CouponCreationResponseDO;
 import com.marcinferenc.emp.backend.port.CouponPersistencePort;
+import com.marcinferenc.emp.backend.port.IpInfoPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Validate;
@@ -17,10 +18,16 @@ import java.time.Instant;
 @Slf4j
 public class CouponDomainServiceImpl implements CouponDomainService {
     private final CouponPersistencePort couponPersistencePort;
+    private final IpInfoPort ipInfoPort;
 
     @Override
     public CouponClaimResponseDO claim(CouponClaimRequestDO couponClaimRequestDO) {
         validateCouponCodeAllLowerCaseChars(couponClaimRequestDO.getCouponCode());
+
+        //translate IP address to country code
+        String countryCode = ipInfoPort.ipAddressToCountryCode(couponClaimRequestDO.getIpAddress());
+        couponClaimRequestDO.setCountryCode(countryCode);
+
         return couponPersistencePort.claim(couponClaimRequestDO);
     }
 

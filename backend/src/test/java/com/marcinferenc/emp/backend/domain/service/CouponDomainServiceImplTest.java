@@ -3,6 +3,7 @@ package com.marcinferenc.emp.backend.domain.service;
 import com.marcinferenc.emp.backend.domain.model.CouponClaimRequestDO;
 import com.marcinferenc.emp.backend.domain.model.CouponCreationRequestDO;
 import com.marcinferenc.emp.backend.port.CouponPersistencePort;
+import com.marcinferenc.emp.backend.port.IpInfoPort;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -19,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class CouponDomainServiceImplTest {
     @InjectMocks private CouponDomainServiceImpl service;
     @Mock private CouponPersistencePort couponPersistencePort;
+    @Mock private IpInfoPort ipInfoPort;
 
     @Test
     void shouldCreateCouponWhenCouponCodeHasNoUpperCaseLetters() {

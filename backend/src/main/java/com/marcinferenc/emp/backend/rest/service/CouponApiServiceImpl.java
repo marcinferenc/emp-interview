@@ -13,6 +13,7 @@ import com.marcinferenc.emp.backend.rest.model.CouponClaimRequestDTO;
 import com.marcinferenc.emp.backend.rest.model.CouponClaimResponseDTO;
 import com.marcinferenc.emp.backend.rest.model.CouponCreationRequestDTO;
 import com.marcinferenc.emp.backend.rest.model.CouponCreationResponseDTO;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Service;
 public class CouponApiServiceImpl implements CouponApiService {
     private final CouponValidationService couponValidationService;
     private final CouponDomainService couponDomainService;
+    private final HttpServletRequest httpServletRequest;
 
     private final CouponClaimRequestRestConverter couponClaimRequestRestConverter;
     private final CouponClaimResponseRestConverter couponClaimResponseRestConverter;
@@ -35,7 +37,8 @@ public class CouponApiServiceImpl implements CouponApiService {
     public CouponClaimResponseDTO claim(CouponClaimRequestDTO couponClaimRequest) {
         couponValidationService.validate(couponClaimRequest);
 
-        CouponClaimRequestDO couponClaimRequestDO = couponClaimRequestRestConverter.toDomainObject(couponClaimRequest);
+        String ipAddress = httpServletRequest.getRemoteAddr();
+        CouponClaimRequestDO couponClaimRequestDO = couponClaimRequestRestConverter.toDomainObject(couponClaimRequest, ipAddress);
         CouponClaimResponseDO couponClaimResponseDO = couponDomainService.claim(couponClaimRequestDO);
         CouponClaimResponseDTO result = couponClaimResponseRestConverter.toDto(couponClaimResponseDO);
 
