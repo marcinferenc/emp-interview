@@ -83,15 +83,7 @@ public class CouponPersistenceServiceMultiThreadIntegrationTest {
     private <T> Set<T> collectResults(List<Future<T>> futures) throws InterruptedException, ExecutionException, TimeoutException {
         Set<T> results = new LinkedHashSet<>();
         for (Future<T> future : futures) {
-            try {
-                results.add(future.get(TestConfig.TIMEOUT_SECONDS, TestConfig.TIMEOUT_TIME_UNIT));
-            } catch (TimeoutException e) {
-                log.error("Timeout occurred while waiting for a result", e);
-            } catch (InterruptedException e) {
-                log.error("Interrupted while waiting for a result", e);
-            } catch (ExecutionException e) {
-                log.error("Error occurred while waiting for a result", e);
-            }
+            results.add(future.get(TestConfig.TIMEOUT_SECONDS, TestConfig.TIMEOUT_TIME_UNIT));
         }
         return results;
     }
