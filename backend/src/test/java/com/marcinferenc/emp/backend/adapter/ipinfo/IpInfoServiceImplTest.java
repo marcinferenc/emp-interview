@@ -18,7 +18,7 @@ class IpInfoServiceImplTest {
         HttpServer server = HttpServer.create(new InetSocketAddress(0), 0);
         AtomicReference<String> requestPath = new AtomicReference<>();
         AtomicReference<String> requestQuery = new AtomicReference<>();
-        server.createContext("/lite/8.8.8.8", exchange -> {
+        server.createContext("/lite/188.122.0.88", exchange -> {
             requestPath.set(exchange.getRequestURI().getPath());
             requestQuery.set(exchange.getRequestURI().getQuery());
             byte[] response = "{\"country_code\":\"PL\"}".getBytes(StandardCharsets.UTF_8);
@@ -39,9 +39,9 @@ class IpInfoServiceImplTest {
 
             String countryCode = service.getCountryCode("8.8.8.8");
 
-            assertThat(countryCode).isEqualTo("US");
-            assertThat(requestPath.get()).isEqualTo("/lite/8.8.8.8");
-            assertThat(requestQuery.get()).isEqualTo("token=2c1f2fe3c5c410");
+            assertThat(countryCode).isEqualTo("PL");
+            assertThat(requestPath.get()).isEqualTo("/lite/188.122.0.88");
+            assertThat(requestQuery.get()).isEqualTo("token=49ru49454o4fvh");
         } finally {
             server.stop(0);
         }
