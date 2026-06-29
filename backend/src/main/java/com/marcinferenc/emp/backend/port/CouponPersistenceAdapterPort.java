@@ -12,6 +12,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -36,7 +38,7 @@ public class CouponPersistenceAdapterPort implements CouponPersistencePort {
     }
 
     @Override
-    public CouponDO find(String couponCode, String countryCode) {
-        return couponPersistenceService.find(couponCode, countryCode);
+    public Optional<CouponDO> find(String couponCode, String countryCode) {
+        return Optional.ofNullable(couponPersistenceService.find(couponCode, countryCode));
     }
 }

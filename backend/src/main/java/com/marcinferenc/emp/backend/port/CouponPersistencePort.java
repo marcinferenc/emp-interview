@@ -6,10 +6,10 @@ import com.marcinferenc.emp.backend.domain.model.CouponCreationRequestDO;
 import com.marcinferenc.emp.backend.domain.model.CouponCreationResponseDO;
 import com.marcinferenc.emp.backend.domain.model.CouponDO;
 
+import java.util.Optional;
+
 public interface CouponPersistencePort {
     CouponCreationResponseDO create(CouponCreationRequestDO couponCreationRequestDO);
-
     CouponClaimResponseDO claim(CouponClaimRequestDO couponClaimRequestDO);
-
-    CouponDO find(String couponCode, String countryCode);
+    Optional<CouponDO> find(String couponCode, String countryCode);
 }

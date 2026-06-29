@@ -20,7 +20,6 @@ import com.marcinferenc.emp.backend.rest.model.CouponException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -72,7 +71,7 @@ public class CouponPersistenceServiceImpl implements CouponPersistenceService {
             final String couponCode = couponClaimRequestPO.getCouponCode();
             int updatedRows = couponRepository.incrementClaimCountIfBelowLimit(couponCode);
             CouponBO couponBO = couponRepository.findByCouponCode(couponCode)
-                .orElseThrow(() -> createCouponNotFound(couponCode));
+                .orElseThrow(() -> createCouponNotFoundException(couponClaimRequestDO));
 
             log.trace("Found coupon: {}", couponBO);
 
@@ -82,13 +81,15 @@ public class CouponPersistenceServiceImpl implements CouponPersistenceService {
 
             Integer updatedClaimCount = couponBO.getClaimCount();
             Integer claimLimitCount = couponBO.getClaimLimitCount();
+            String countryCode = couponBO.getCountryCode();
             CouponClaimResponsePO result = CouponClaimResponsePO.builder()
                 .status(CouponResponseStatusPO.SUCCESS)
                 .userEmailId(couponClaimRequestPO.getUserEmailId())
                 .couponCode(couponBO.getCouponCode())
                 .timestamp(Instant.now())
-                .message(String.format("Coupon `%s` claimed OK: %d -> %d / %d",
+                .message(String.format("Coupon code: %s, countryCode: %s claimed OK: %d -> %d / %d",
                     couponCode,
+                    countryCode,
                     updatedClaimCount - 1,
                     updatedClaimCount,
                     claimLimitCount))
@@ -116,10 +117,13 @@ public class CouponPersistenceServiceImpl implements CouponPersistenceService {
     }
     //------------------------------------------------------
 
-    private CouponException createCouponNotFound(String couponByCode) {
+    private CouponException createCouponNotFoundException(CouponClaimRequestDO couponClaimRequestDO) {
+        String couponCode = couponClaimRequestDO.getCouponCode();
+        String countryCode = couponClaimRequestDO.getCountryCode();
+
         return new CouponException(
             ErrorCode.COUPON_NOT_FOUND,
-            String.format("coupon not found: %s", couponByCode));
+            String.format("coupon not found. couponCode: %s, countryCode: %s", couponCode, countryCode));
     }
 
     private void throwClaimLimitExceeded(CouponBO couponBO) {

@@ -4,15 +4,19 @@ import com.marcinferenc.emp.backend.domain.model.CouponClaimRequestDO;
 import com.marcinferenc.emp.backend.domain.model.CouponClaimResponseDO;
 import com.marcinferenc.emp.backend.domain.model.CouponCreationRequestDO;
 import com.marcinferenc.emp.backend.domain.model.CouponCreationResponseDO;
+import com.marcinferenc.emp.backend.domain.model.CouponDO;
 import com.marcinferenc.emp.backend.port.CouponPersistencePort;
 import com.marcinferenc.emp.backend.port.IpInfoPort;
-import com.marcinferenc.emp.backend.rest.service.CouponValidationService;
+import com.marcinferenc.emp.backend.rest.ErrorCode;
+import com.marcinferenc.emp.backend.rest.model.CouponException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Validate;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Service
 @RequiredArgsConstructor
@@ -23,14 +27,27 @@ public class CouponDomainServiceImpl implements CouponDomainService {
 
     @Override
     public CouponClaimResponseDO claim(CouponClaimRequestDO couponClaimRequestDO) {
-        validateCouponCodeAllLowerCaseChars(couponClaimRequestDO.getCouponCode());
+        String couponCode = couponClaimRequestDO.getCouponCode();
+        String ipAddress = couponClaimRequestDO.getIpAddress();
+        validateCouponCodeAllLowerCaseChars(couponCode);
 
-        String countryCode = ipInfoPort.getCountryCode(couponClaimRequestDO.getIpAddress());
+        String countryCode = ipInfoPort.getCountryCode(ipAddress);
         couponClaimRequestDO.setCountryCode(countryCode);
+        Optional<CouponDO> couponOptional = couponPersistencePort.find(couponCode, countryCode);
+        log.info("Coupon found: {}", couponOptional);
 
+        AtomicReference<CouponClaimResponseDO> couponClaimResponseDO = new AtomicReference<>();
+        couponOptional.ifPresentOrElse(coupon -> {
+            log.info("Coupon found: {}", coupon);
+            couponClaimResponseDO.set(couponPersistencePort.claim(couponClaimRequestDO));
+        }, () -> {
+            log.info("Coupon not found");
+            throw new CouponException(
+                ErrorCode.COUPON_NOT_FOUND,
+                String.format("coupon not found. couponCode: %s, countryCode: %s", couponCode, countryCode));
+        });
 
-
-        return couponPersistencePort.claim(couponClaimRequestDO);
+        return couponClaimResponseDO.get();
     }
 
     @Override
