@@ -22,29 +22,24 @@ import static com.marcinferenc.emp.backend.adapter.persistence.service.TestConfi
 @TestComponent
 @Slf4j
 public class CouponCreationTestComponent {
+    @Autowired private CouponPersistenceServiceImpl couponPersistenceService;
 
-    @Autowired
-    private CouponPersistenceServiceImpl couponPersistenceService;
-
-    private Set<CouponCreationRequestDO> generateCouponCreationRequestDO() {
+    Set<String> generateCouponCodes() {
         final Set<String> couponCodes = new LinkedHashSet<>();
-        final Set<CouponCreationRequestDO> couponCreationRequestDOSet = new LinkedHashSet<>();
 
         while (couponCodes.size() < COUPON_COUNT) {
             couponCodes.add(RandomStringUtils.random(COUPON_CODE_LENGTH, true, true).toUpperCase());
         }
 
         log.info("coupon codes: {}", couponCodes);
+        return couponCodes;
+    }
 
-        for (String couponCode : couponCodes) {
-            CouponCreationRequestDO couponCreationRequestDO = CouponCreationRequestDO.builder()
-                .couponCode(couponCode)
-                .countryCode(COUNTRY_CODE)
-                .claimCount(0)
-                .claimLimitCount(COUPON_CLAIM_LIMIT_COUNT)
-                .createdAt(Instant.now())
-                .build();
-            couponCreationRequestDOSet.add(couponCreationRequestDO);
+    private Set<CouponCreationRequestDO> generateCouponCreationRequestDO() {
+        final Set<CouponCreationRequestDO> couponCreationRequestDOSet = new LinkedHashSet<>();
+
+        for (String couponCode : generateCouponCodes()) {
+            couponCreationRequestDOSet.add(createCouponCreationRequest(couponCode));
         }
 
         return couponCreationRequestDOSet;
@@ -61,15 +56,33 @@ public class CouponCreationTestComponent {
         return couponCreationResponseDOSet;
     }
 
+    CouponCreationResponseDO createCoupons(String couponCode) {
+        return couponPersistenceService.create(createCouponCreationRequest(couponCode));
+    }
+
     void claimCoupons(List<CouponBO> allCoupons) {
         for (CouponBO coupon : allCoupons) {
-            for (int i = 0; i < coupon.getClaimLimitCount(); i++) {
-                couponPersistenceService.claim(
-                    CouponClaimRequestDO.builder()
-                        .couponCode(coupon.getCouponCode())
-                        .userEmailId("user@server.com")
-                        .build());
-            }
+            claimCoupons(coupon);
         }
+    }
+
+    void claimCoupons(CouponBO coupon) {
+        for (int i = 0; i < coupon.getClaimLimitCount(); i++) {
+            couponPersistenceService.claim(
+                CouponClaimRequestDO.builder()
+                    .couponCode(coupon.getCouponCode())
+                    .userEmailId("user@server.com")
+                    .build());
+        }
+    }
+
+    private CouponCreationRequestDO createCouponCreationRequest(String couponCode) {
+        return CouponCreationRequestDO.builder()
+            .couponCode(couponCode)
+            .countryCode(COUNTRY_CODE)
+            .claimCount(0)
+            .claimLimitCount(COUPON_CLAIM_LIMIT_COUNT)
+            .createdAt(Instant.now())
+            .build();
     }
 }

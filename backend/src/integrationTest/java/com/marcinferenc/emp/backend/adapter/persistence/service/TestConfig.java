@@ -1,8 +1,15 @@
 package com.marcinferenc.emp.backend.adapter.persistence.service;
 
+import java.util.concurrent.TimeUnit;
+
 public interface TestConfig {
-    static final String COUNTRY_CODE = "US";
-    static final int COUPON_COUNT = 100;
-    static final int COUPON_CODE_LENGTH = 2;
-    static final int COUPON_CLAIM_LIMIT_COUNT = 50;
+    //generation
+    String COUNTRY_CODE = "US";
+    int COUPON_COUNT = 100;
+    int COUPON_CODE_LENGTH = 2;
+    int COUPON_CLAIM_LIMIT_COUNT = 50;
+
+    //timeout
+    long TIMEOUT_SECONDS = 1;
+    TimeUnit TIMEOUT_TIME_UNIT = TimeUnit.SECONDS;
 }
