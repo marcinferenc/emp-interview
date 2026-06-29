@@ -52,20 +52,13 @@ public class CouponPersistenceServiceImpl implements CouponPersistenceService {
 
         CouponBO persistedCoupon = null;
         CouponCreationResponsePO couponCreationResponsePO = null;
-        try {
-            persistedCoupon = couponRepository.save(couponBO);
-            log.info("Saved coupon: {}", persistedCoupon);
-            couponCreationResponsePO = CouponCreationResponsePO.builder()
-                .status(CouponResponseStatusPO.SUCCESS)
-                .message(String.format("Coupon created OK: %s", persistedCoupon))
-                .build();
 
-        } catch (DataIntegrityViolationException e) {
-            couponCreationResponsePO = CouponCreationResponsePO.builder()
-                .status(CouponResponseStatusPO.FAILURE)
-                .message(String.format("Coupon NOT created, already exists: %s", couponCreationRequestDO.getCouponCode()))
-                .build();
-        }
+        persistedCoupon = couponRepository.save(couponBO);
+        log.info("Saved coupon: {}", persistedCoupon);
+        couponCreationResponsePO = CouponCreationResponsePO.builder()
+            .status(CouponResponseStatusPO.SUCCESS)
+            .message(String.format("Coupon created OK: %s", persistedCoupon))
+            .build();
 
         return couponCreationResponsePersistenceConverter.toDomainObject(couponCreationResponsePO);
     }

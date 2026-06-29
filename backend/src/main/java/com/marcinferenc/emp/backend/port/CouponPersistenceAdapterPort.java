@@ -1,12 +1,16 @@
 package com.marcinferenc.emp.backend.port;
 
+import com.marcinferenc.emp.backend.adapter.persistence.model.CouponCreationResponsePO;
+import com.marcinferenc.emp.backend.adapter.persistence.model.CouponResponseStatusPO;
 import com.marcinferenc.emp.backend.adapter.persistence.service.CouponPersistenceService;
 import com.marcinferenc.emp.backend.domain.model.CouponClaimRequestDO;
 import com.marcinferenc.emp.backend.domain.model.CouponClaimResponseDO;
 import com.marcinferenc.emp.backend.domain.model.CouponCreationRequestDO;
 import com.marcinferenc.emp.backend.domain.model.CouponCreationResponseDO;
+import com.marcinferenc.emp.backend.domain.model.CouponResponseStatusDO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -17,7 +21,14 @@ public class CouponPersistenceAdapterPort implements CouponPersistencePort {
 
     @Override
     public CouponCreationResponseDO create(CouponCreationRequestDO couponCreationRequestDO) {
-        return couponPersistenceService.create(couponCreationRequestDO);
+        try {
+            return couponPersistenceService.create(couponCreationRequestDO);
+        } catch (DataIntegrityViolationException e) {
+            return CouponCreationResponseDO.builder()
+                .status(CouponResponseStatusDO.FAILURE)
+                .message(String.format("Coupon NOT created, already exists: %s", couponCreationRequestDO.getCouponCode()))
+                .build();
+        }
     }
 
     @Override
