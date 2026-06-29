@@ -21,8 +21,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 
 @Service
 @RequiredArgsConstructor
@@ -65,28 +63,22 @@ public class CouponPersistenceServiceImpl implements CouponPersistenceService {
             CouponClaimRequestPO couponClaimRequestPO = couponClaimRequestPersistenceConverter.toPersistenceObject(couponClaimRequestDO);
 
             final String couponCode = couponClaimRequestPO.getCouponCode();
-            Optional<CouponBO> couponByCode = couponRepository.findByCouponCode(couponCode);
-            AtomicReference<CouponClaimResponsePO> result = new AtomicReference<>();
+            int updatedRows = couponRepository.incrementClaimCountIfBelowLimit(couponCode);
+            CouponBO couponBO = couponRepository.findByCouponCode(couponCode)
+                .orElseThrow(() -> createCouponNotFound(couponCode));
 
-            couponByCode.ifPresentOrElse(
-                couponBO -> {
-                    log.info("Found coupon: {}", couponBO);
-                    Integer currentClaimCount = couponBO.getClaimCount();
+            log.trace("Found coupon: {}", couponBO);
 
-                    result.set(CouponClaimResponsePO.builder()
-                        .message(String.format("Coupon `%s` claimed OK: %d -> %d", couponCode, currentClaimCount, ++currentClaimCount))
-                        .build());
+            if (updatedRows == 0) {
+                throwClaimLimitExceeded(couponBO);
+            }
 
-                    if (currentClaimCount > couponBO.getClaimLimitCount()) {
-                        throwClaimLimitExceeded(couponBO);
-                    }
-                    CouponBO updatedCoupon = deepCopyWithClaimCountIncreased(couponBO);
-                    couponRepository.save(updatedCoupon);
+            Integer updatedClaimCount = couponBO.getClaimCount();
+            CouponClaimResponsePO result = CouponClaimResponsePO.builder()
+                .message(String.format("Coupon `%s` claimed OK: %d -> %d", couponCode, updatedClaimCount - 1, updatedClaimCount))
+                .build();
 
-                },
-                () -> throwCouponNotFound(couponCode));
-
-            return couponClaimResponsePersistenceConverter.toDomainObject(result.get());
+            return couponClaimResponsePersistenceConverter.toDomainObject(result);
         } catch (Exception e) {
             log.error("Error while claiming coupon {}", couponClaimRequestDO.getCouponCode(), e);
             throw e;
@@ -103,8 +95,8 @@ public class CouponPersistenceServiceImpl implements CouponPersistenceService {
     }
     //------------------------------------------------------
 
-    private void throwCouponNotFound(String couponByCode) {
-        throw new CouponException(
+    private CouponException createCouponNotFound(String couponByCode) {
+        return new CouponException(
             ErrorCode.COUPON_NOT_FOUND,
             String.format("coupon not found: %s", couponByCode));
     }
@@ -116,14 +108,4 @@ public class CouponPersistenceServiceImpl implements CouponPersistenceService {
         );
     }
 
-        private CouponBO deepCopyWithClaimCountIncreased(CouponBO couponBO) {
-        return CouponBO.builder()
-            .id(couponBO.getId())
-            .couponCode(couponBO.getCouponCode())
-            .countryCode(couponBO.getCountryCode())
-            .claimLimitCount(couponBO.getClaimLimitCount())
-            .claimCount(couponBO.getClaimCount() + 1)
-            .createdAt(couponBO.getCreatedAt())
-            .build();
-    }
 }

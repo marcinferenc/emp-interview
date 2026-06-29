@@ -5,9 +5,9 @@ import java.util.concurrent.TimeUnit;
 public interface TestConfig {
     //generation
     String COUNTRY_CODE = "US";
-    int COUPON_COUNT = 1;
+    int COUPON_COUNT = 10;
     int COUPON_CODE_LENGTH = 2;
-    int COUPON_CLAIM_LIMIT_COUNT = 2;
+    int COUPON_CLAIM_LIMIT_COUNT = 50;
 
     //timeout
     long TIMEOUT_SECONDS = 60;
