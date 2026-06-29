@@ -1,6 +1,7 @@
 package com.marcinferenc.emp.backend.rest.converter;
 
 import com.marcinferenc.emp.backend.domain.model.CouponClaimResponseDO;
+import com.marcinferenc.emp.backend.rest.model.CouponResponseStatusDTO;
 import com.marcinferenc.emp.backend.rest.model.CouponClaimResponseDTO;
 import org.springframework.stereotype.Component;
 
@@ -12,7 +13,19 @@ public class CouponClaimResponseRestConverter {
         }
 
         return CouponClaimResponseDTO.builder()
+            .status(toDtoStatus(domainObject))
+            .couponCode(domainObject.getCouponCode())
+            .userEmailId(domainObject.getUserEmailId())
+            .timestamp(domainObject.getTimestamp())
             .message(domainObject.getMessage())
             .build();
+    }
+
+    private CouponResponseStatusDTO toDtoStatus(CouponClaimResponseDO domainObject) {
+        if (domainObject.getStatus() == null) {
+            return null;
+        }
+
+        return CouponResponseStatusDTO.valueOf(domainObject.getStatus().name());
     }
 }
