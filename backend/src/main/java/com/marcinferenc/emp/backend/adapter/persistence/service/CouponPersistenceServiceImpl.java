@@ -74,8 +74,13 @@ public class CouponPersistenceServiceImpl implements CouponPersistenceService {
             }
 
             Integer updatedClaimCount = couponBO.getClaimCount();
+            Integer claimLimitCount = couponBO.getClaimLimitCount();
             CouponClaimResponsePO result = CouponClaimResponsePO.builder()
-                .message(String.format("Coupon `%s` claimed OK: %d -> %d", couponCode, updatedClaimCount - 1, updatedClaimCount))
+                .message(String.format("Coupon `%s` claimed OK: %d -> %d / %d",
+                    couponCode,
+                    updatedClaimCount - 1,
+                    updatedClaimCount,
+                    claimLimitCount))
                 .build();
 
             return couponClaimResponsePersistenceConverter.toDomainObject(result);
