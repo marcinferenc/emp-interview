@@ -29,6 +29,7 @@ public class CouponDomainServiceImpl implements CouponDomainService {
     public CouponClaimResponseDO claim(CouponClaimRequestDO couponClaimRequestDO) {
         String couponCode = couponClaimRequestDO.getCouponCode();
         String ipAddress = couponClaimRequestDO.getIpAddress();
+        AtomicReference<CouponClaimResponseDO> couponClaimResponseDO = new AtomicReference<>();
         validateCouponCodeAllLowerCaseChars(couponCode);
 
         String countryCode = ipInfoPort.getCountryCode(ipAddress);
@@ -36,7 +37,6 @@ public class CouponDomainServiceImpl implements CouponDomainService {
         Optional<CouponDO> couponOptional = couponPersistencePort.find(couponCode, countryCode);
         log.info("Coupon found: {}", couponOptional);
 
-        AtomicReference<CouponClaimResponseDO> couponClaimResponseDO = new AtomicReference<>();
         couponOptional.ifPresentOrElse(coupon -> {
             log.info("Coupon found: {}", coupon);
             couponClaimResponseDO.set(couponPersistencePort.claim(couponClaimRequestDO));

@@ -1,13 +1,18 @@
 package com.marcinferenc.emp.backend.adapter.ipinfo;
 
+import com.marcinferenc.emp.backend.rest.ErrorCode;
+import com.marcinferenc.emp.backend.rest.model.CouponException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.util.Timeout;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -36,7 +41,19 @@ public class IpInfoServiceImpl implements IpInfoService {
         @Value("${ipinfo.api.url}") String apiUrl,
         IpAddressOverrideService ipAddressOverrideService
     ) {
-        this(apiKey, apiUrl, HttpClientBuilder.create().build(), ipAddressOverrideService);
+        this(apiKey, apiUrl, createHttpClient(), ipAddressOverrideService);
+    }
+
+    private static CloseableHttpClient createHttpClient() {
+        RequestConfig requestConfig = RequestConfig.custom()
+            .setConnectionRequestTimeout(Timeout.ofSeconds(1))
+            .setConnectTimeout(Timeout.ofSeconds(2))
+            .setResponseTimeout(Timeout.ofSeconds(5))
+            .build();
+
+        return HttpClientBuilder.create()
+            .setDefaultRequestConfig(requestConfig)
+            .build();
     }
 
     IpInfoServiceImpl(
@@ -66,12 +83,14 @@ public class IpInfoServiceImpl implements IpInfoService {
                 String responseBody = entity == null ? "" : EntityUtils.toString(entity);
 
                 if (response.getCode() < HttpStatus.SC_SUCCESS || response.getCode() >= HttpStatus.SC_REDIRECTION) {
-                    throw new IllegalStateException("IpInfo API request failed with status " + response.getCode());
+                    throw new CouponException(
+                        ErrorCode.COUNTRY_CODE_UNKNOWN,
+                        String.format("Unable to get country code for ip address %s, responseBody: %s", ipAddress, responseBody));
                 }
 
                 String countryCode = extractCountryCode(responseBody);
                 if (countryCode == null || countryCode.isBlank()) {
-                    throw new IllegalStateException("IpInfo API response does not contain country code");
+                    throw new CouponException(ErrorCode.COUNTRY_CODE_UNKNOWN, "Country code not found in response");
                 }
 
                 return countryCode;

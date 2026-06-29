@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class CouponExceptionHandler {
 
     @ExceptionHandler(CouponException.class)
+    @SuppressWarnings("unused")
     public ResponseEntity<CouponErrorResponseDTO> handleCouponException(CouponException exception) {
         log.warn("Coupon exception occurred: {}", exception.toString());
 
@@ -27,6 +28,7 @@ public class CouponExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
+    @SuppressWarnings("unused")
     public ResponseEntity<CouponErrorResponseDTO> handleException(Exception exception) {
         log.error("Unexpected exception occurred", exception);
 
@@ -44,6 +46,8 @@ public class CouponExceptionHandler {
             case VALIDATION_ERROR -> HttpStatus.BAD_REQUEST;
             case COUPON_NOT_FOUND -> HttpStatus.NOT_FOUND;
             case CLAIM_LIMIT_EXCEEDED -> HttpStatus.CONFLICT;
+            case COUNTRY_CODE_UNKNOWN -> HttpStatus.INTERNAL_SERVER_ERROR;
+            case COUNTRY_CODE_DETECTION_FAILED -> HttpStatus.INTERNAL_SERVER_ERROR;
         };
     }
 }
