@@ -68,12 +68,16 @@ public class CouponCreationTestComponent {
 
     void claimCoupons(CouponBO coupon) {
         for (int i = 0; i < coupon.getClaimLimitCount(); i++) {
-            couponPersistenceService.claim(
-                CouponClaimRequestDO.builder()
-                    .couponCode(coupon.getCouponCode())
-                    .userEmailId("user@server.com")
-                    .build());
+            claimCoupon(coupon);
         }
+    }
+
+    void claimCoupon(CouponBO coupon) {
+        couponPersistenceService.claim(
+            CouponClaimRequestDO.builder()
+                .couponCode(coupon.getCouponCode())
+                .userEmailId("user@server.com")
+                .build());
     }
 
     private CouponCreationRequestDO createCouponCreationRequest(String couponCode) {

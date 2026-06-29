@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -59,15 +60,7 @@ public class CouponPersistenceServiceMultiThreadIntegrationTest {
         assertThat(allCoupons).hasSize(couponCreationResponseDOSet.size());
         assertAllCouponsClaimAmount(allCoupons, 0);
 
-        runConcurrently(
-            allCoupons.stream()
-                .<Callable<Void>>map(
-                    coupon ->
-                        () -> {
-                            couponCreationTestComponent.claimCoupons(coupon);
-                            return null;
-                })
-                .toList());
+        runConcurrently(createClaimTasks(allCoupons));
 
         List<CouponBO> allCouponsAfterClaim = couponPersistenceService.findAll();
         assertAllCouponsClaimAmount(allCouponsAfterClaim, COUPON_CLAIM_LIMIT_COUNT);
@@ -78,6 +71,19 @@ public class CouponPersistenceServiceMultiThreadIntegrationTest {
             List<Future<T>> futures = executorService.invokeAll(tasks, TestConfig.TIMEOUT_SECONDS, TestConfig.TIMEOUT_TIME_UNIT);
             return collectResults(futures);
         }
+    }
+
+    private List<Callable<Void>> createClaimTasks(List<CouponBO> allCoupons) {
+        List<Callable<Void>> tasks = new ArrayList<>();
+        for (CouponBO coupon : allCoupons) {
+            for (int i = 0; i < coupon.getClaimLimitCount(); i++) {
+                tasks.add(() -> {
+                    couponCreationTestComponent.claimCoupon(coupon);
+                    return null;
+                });
+            }
+        }
+        return tasks;
     }
 
     private <T> Set<T> collectResults(List<Future<T>> futures) throws InterruptedException, ExecutionException, TimeoutException {
