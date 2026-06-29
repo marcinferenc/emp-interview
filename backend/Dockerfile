@@ -15,7 +15,11 @@ FROM eclipse-temurin:21-jre-jammy
 
 WORKDIR /app
 
-RUN groupadd --system spring && useradd --system --gid spring spring
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends postgresql-client \
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd --system spring \
+    && useradd --system --gid spring spring
 
 COPY --from=build /workspace/app.jar /app/app.jar
 
