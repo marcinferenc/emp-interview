@@ -2,6 +2,7 @@ package com.marcinferenc.emp.backend.adapter.persistence.service;
 
 import com.marcinferenc.emp.backend.adapter.persistence.model.CouponBO;
 import com.marcinferenc.emp.backend.domain.model.CouponClaimRequestDO;
+import com.marcinferenc.emp.backend.domain.model.CouponClaimResponseDO;
 import com.marcinferenc.emp.backend.domain.model.CouponCreationRequestDO;
 import com.marcinferenc.emp.backend.domain.model.CouponCreationResponseDO;
 import lombok.extern.slf4j.Slf4j;
@@ -72,8 +73,8 @@ public class CouponCreationTestComponent {
         }
     }
 
-    void claimCoupon(CouponBO coupon) {
-        couponPersistenceService.claim(
+    CouponClaimResponseDO claimCoupon(CouponBO coupon) {
+        return couponPersistenceService.claim(
             CouponClaimRequestDO.builder()
                 .couponCode(coupon.getCouponCode())
                 .userEmailId("user@server.com")

@@ -61,31 +61,36 @@ public class CouponPersistenceServiceImpl implements CouponPersistenceService {
 
     @Override
     public CouponClaimResponseDO claim(CouponClaimRequestDO couponClaimRequestDO) {
-        CouponClaimRequestPO couponClaimRequestPO = couponClaimRequestPersistenceConverter.toPersistenceObject(couponClaimRequestDO);
+        try {
+            CouponClaimRequestPO couponClaimRequestPO = couponClaimRequestPersistenceConverter.toPersistenceObject(couponClaimRequestDO);
 
-        final String couponCode = couponClaimRequestPO.getCouponCode();
-        Optional<CouponBO> couponByCode = couponRepository.findByCouponCode(couponCode);
-        AtomicReference<CouponClaimResponsePO> result = new AtomicReference<>();
+            final String couponCode = couponClaimRequestPO.getCouponCode();
+            Optional<CouponBO> couponByCode = couponRepository.findByCouponCode(couponCode);
+            AtomicReference<CouponClaimResponsePO> result = new AtomicReference<>();
 
-        couponByCode.ifPresentOrElse(
-            couponBO -> {
-                log.info("Found coupon: {}", couponBO);
-                Integer currentClaimCount = couponBO.getClaimCount();
+            couponByCode.ifPresentOrElse(
+                couponBO -> {
+                    log.info("Found coupon: {}", couponBO);
+                    Integer currentClaimCount = couponBO.getClaimCount();
 
-                result.set(CouponClaimResponsePO.builder()
-                    .message(String.format("Coupon claimed OK: %d -> %d", currentClaimCount, ++currentClaimCount))
-                    .build());
+                    result.set(CouponClaimResponsePO.builder()
+                        .message(String.format("Coupon `%s` claimed OK: %d -> %d", couponCode, currentClaimCount, ++currentClaimCount))
+                        .build());
 
-                if (currentClaimCount > couponBO.getClaimLimitCount()) {
-                    throwClaimLimitExceeded(couponBO);
-                }
-                CouponBO updatedCoupon = deepCopyWithClaimCountIncreased(couponBO);
-                couponRepository.save(updatedCoupon);
+                    if (currentClaimCount > couponBO.getClaimLimitCount()) {
+                        throwClaimLimitExceeded(couponBO);
+                    }
+                    CouponBO updatedCoupon = deepCopyWithClaimCountIncreased(couponBO);
+                    couponRepository.save(updatedCoupon);
 
-            },
-            () -> throwCouponNotFound(couponCode));
+                },
+                () -> throwCouponNotFound(couponCode));
 
-        return couponClaimResponsePersistenceConverter.toDomainObject(result.get());
+            return couponClaimResponsePersistenceConverter.toDomainObject(result.get());
+        } catch (Exception e) {
+            log.error("Error while claiming coupon {}", couponClaimRequestDO.getCouponCode(), e);
+            throw e;
+        }
     }
 
     protected List<CouponBO> findAll() {

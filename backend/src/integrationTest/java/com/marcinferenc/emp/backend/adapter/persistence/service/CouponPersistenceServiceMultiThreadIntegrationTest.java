@@ -2,6 +2,7 @@ package com.marcinferenc.emp.backend.adapter.persistence.service;
 
 import com.marcinferenc.emp.backend.CouponBackendApplication;
 import com.marcinferenc.emp.backend.adapter.persistence.model.CouponBO;
+import com.marcinferenc.emp.backend.domain.model.CouponClaimResponseDO;
 import com.marcinferenc.emp.backend.domain.model.CouponCreationResponseDO;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
@@ -60,7 +61,8 @@ public class CouponPersistenceServiceMultiThreadIntegrationTest {
         assertThat(allCoupons).hasSize(couponCreationResponseDOSet.size());
         assertAllCouponsClaimAmount(allCoupons, 0);
 
-        runConcurrently(createClaimTasks(allCoupons));
+        Set<CouponClaimResponseDO> couponClaimResponseDOS = runConcurrently(createClaimTasks(allCoupons));
+        log.info("Coupon claim responses: {}", couponClaimResponseDOS);
 
         List<CouponBO> allCouponsAfterClaim = couponPersistenceService.findAll();
         assertAllCouponsClaimAmount(allCouponsAfterClaim, COUPON_CLAIM_LIMIT_COUNT);
@@ -73,14 +75,11 @@ public class CouponPersistenceServiceMultiThreadIntegrationTest {
         }
     }
 
-    private List<Callable<Void>> createClaimTasks(List<CouponBO> allCoupons) {
-        List<Callable<Void>> tasks = new ArrayList<>();
+    private List<Callable<CouponClaimResponseDO>> createClaimTasks(List<CouponBO> allCoupons) {
+        List<Callable<CouponClaimResponseDO>> tasks = new ArrayList<>();
         for (CouponBO coupon : allCoupons) {
             for (int i = 0; i < coupon.getClaimLimitCount(); i++) {
-                tasks.add(() -> {
-                    couponCreationTestComponent.claimCoupon(coupon);
-                    return null;
-                });
+                tasks.add(() -> couponCreationTestComponent.claimCoupon(coupon));
             }
         }
         return tasks;
