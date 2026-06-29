@@ -2,6 +2,7 @@ package com.marcinferenc.emp.backend.adapter.persistence.converter;
 
 import com.marcinferenc.emp.backend.adapter.persistence.model.CouponClaimResponsePO;
 import com.marcinferenc.emp.backend.domain.model.CouponClaimResponseDO;
+import com.marcinferenc.emp.backend.domain.model.CouponResponseStatusDO;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -13,17 +14,19 @@ public class CouponClaimResponsePersistenceConverter {
         }
 
         return CouponClaimResponseDO.builder()
+            .status(toDomainStatus(persistenceObject))
+            .couponCode(persistenceObject.getCouponCode())
+            .userEmailId(persistenceObject.getUserEmailId())
+            .timestamp(persistenceObject.getTimestamp())
             .message(persistenceObject.getMessage())
             .build();
     }
 
-    public CouponClaimResponsePO toPersistenceObject(CouponClaimResponseDO domainObject) {
-        if (domainObject == null) {
+    private CouponResponseStatusDO toDomainStatus(CouponClaimResponsePO persistenceObject) {
+        if (persistenceObject.getStatus() == null) {
             return null;
         }
 
-        return CouponClaimResponsePO.builder()
-            .message(domainObject.getMessage())
-            .build();
+        return CouponResponseStatusDO.valueOf(persistenceObject.getStatus().name());
     }
 }

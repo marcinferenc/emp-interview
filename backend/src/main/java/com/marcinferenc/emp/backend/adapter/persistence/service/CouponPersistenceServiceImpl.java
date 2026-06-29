@@ -9,6 +9,7 @@ import com.marcinferenc.emp.backend.adapter.persistence.model.CouponClaimRequest
 import com.marcinferenc.emp.backend.adapter.persistence.model.CouponClaimResponsePO;
 import com.marcinferenc.emp.backend.adapter.persistence.model.CouponCreationRequestPO;
 import com.marcinferenc.emp.backend.adapter.persistence.model.CouponCreationResponsePO;
+import com.marcinferenc.emp.backend.adapter.persistence.model.CouponResponseStatusPO;
 import com.marcinferenc.emp.backend.domain.model.CouponClaimRequestDO;
 import com.marcinferenc.emp.backend.domain.model.CouponClaimResponseDO;
 import com.marcinferenc.emp.backend.domain.model.CouponCreationRequestDO;
@@ -20,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.List;
 
 @Service
@@ -76,6 +78,10 @@ public class CouponPersistenceServiceImpl implements CouponPersistenceService {
             Integer updatedClaimCount = couponBO.getClaimCount();
             Integer claimLimitCount = couponBO.getClaimLimitCount();
             CouponClaimResponsePO result = CouponClaimResponsePO.builder()
+                .status(CouponResponseStatusPO.SUCCESS)
+                .userEmailId(couponClaimRequestPO.getUserEmailId())
+                .couponCode(couponBO.getCouponCode())
+                .timestamp(Instant.now())
                 .message(String.format("Coupon `%s` claimed OK: %d -> %d / %d",
                     couponCode,
                     updatedClaimCount - 1,
