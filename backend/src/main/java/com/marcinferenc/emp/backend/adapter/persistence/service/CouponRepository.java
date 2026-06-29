@@ -10,6 +10,7 @@ import java.util.Optional;
 
 public interface CouponRepository extends JpaRepository<CouponBO, Long> {
     Optional<CouponBO> findByCouponCode(String couponCode);
+    Optional<CouponBO> findByCouponCodeAndCountryCode(String couponCode, String countryCode);
 
     @Modifying
     @Query("""

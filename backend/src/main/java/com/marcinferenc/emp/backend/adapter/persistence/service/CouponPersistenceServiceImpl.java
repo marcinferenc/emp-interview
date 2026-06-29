@@ -104,7 +104,9 @@ public class CouponPersistenceServiceImpl implements CouponPersistenceService {
 
     @Override
     public CouponDO find(String couponCode, String countryCode) {
-        return null;
+        return couponRepository.findByCouponCodeAndCountryCode(couponCode, countryCode)
+            .map(this::toDomainObject)
+            .orElse(null);
     }
 
     protected List<CouponBO> findAll() {
@@ -133,4 +135,10 @@ public class CouponPersistenceServiceImpl implements CouponPersistenceService {
         );
     }
 
+    private CouponDO toDomainObject(CouponBO couponBO) {
+        return CouponDO.builder()
+            .couponCode(couponBO.getCouponCode())
+            .countryCode(couponBO.getCountryCode())
+            .build();
+    }
 }
