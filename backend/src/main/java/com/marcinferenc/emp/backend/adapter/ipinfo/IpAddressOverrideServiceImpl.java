@@ -5,9 +5,9 @@ import org.springframework.stereotype.Service;
 
 @Service
 @Profile("!dev")
-public class IpAddressTransformationServiceImpl implements IpAddressTransformationService {
+public class IpAddressOverrideServiceImpl implements IpAddressOverrideService {
     @Override
-    public String transform(String ipAddress) {
+    public String override(String ipAddress) {
         return ipAddress;
     }
 }

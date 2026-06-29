@@ -25,7 +25,7 @@ public class IpInfoServiceImpl implements IpInfoService {
     private static final Pattern COUNTRY_CODE_PATTERN = Pattern.compile("\"country_code\"\\s*:\\s*\"([^\"]+)\"");
     private static final Pattern COUNTRY_CODE_CAMEL_CASE_PATTERN = Pattern.compile("\"countryCode\"\\s*:\\s*\"([^\"]+)\"");
 
-    private final IpAddressTransformationService ipAddressTransformationService;
+    private final IpAddressOverrideService ipAddressOverrideService;
     private final CloseableHttpClient httpClient;
     private final String apiKey;
     private final String apiUrl;
@@ -34,26 +34,26 @@ public class IpInfoServiceImpl implements IpInfoService {
     public IpInfoServiceImpl(
         @Value("${ipinfo.api.key}") String apiKey,
         @Value("${ipinfo.api.url}") String apiUrl,
-        IpAddressTransformationService ipAddressTransformationService
+        IpAddressOverrideService ipAddressOverrideService
     ) {
-        this(apiKey, apiUrl, HttpClientBuilder.create().build(), ipAddressTransformationService);
+        this(apiKey, apiUrl, HttpClientBuilder.create().build(), ipAddressOverrideService);
     }
 
     IpInfoServiceImpl(
         String apiKey,
         String apiUrl,
         CloseableHttpClient httpClient,
-        IpAddressTransformationService ipAddressTransformationService
+        IpAddressOverrideService ipAddressOverrideService
     ) {
         this.apiKey = apiKey;
         this.apiUrl = apiUrl;
         this.httpClient = httpClient;
-        this.ipAddressTransformationService = ipAddressTransformationService;
+        this.ipAddressOverrideService = ipAddressOverrideService;
     }
 
     @Override
     public String getCountryCode(String ipAddress) {
-        String transformedIpAddress = ipAddressTransformationService.transform(ipAddress);
+        String transformedIpAddress = ipAddressOverrideService.override(ipAddress);
         return getCountryCodeInternal(transformedIpAddress);
     }
 

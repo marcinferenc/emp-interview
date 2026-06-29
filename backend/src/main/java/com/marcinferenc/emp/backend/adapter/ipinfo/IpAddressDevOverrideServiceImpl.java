@@ -6,17 +6,17 @@ import org.springframework.stereotype.Service;
 
 @Service
 @Profile("dev")
-public class IpAddressDevTransformationServiceImpl implements IpAddressTransformationService {
+public class IpAddressDevOverrideServiceImpl implements IpAddressOverrideService {
     private final String ipAddressOverride;
 
-    public IpAddressDevTransformationServiceImpl(
+    public IpAddressDevOverrideServiceImpl(
         @Value("${ipinfo.ip.address.override}") String ipAddressOverride
     ) {
         this.ipAddressOverride = ipAddressOverride;
     }
 
     @Override
-    public String transform(String ipAddress) {
+    public String override(String ipAddress) {
         return ipAddressOverride;
     }
 }

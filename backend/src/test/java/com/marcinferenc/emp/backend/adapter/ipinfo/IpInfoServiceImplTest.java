@@ -35,7 +35,7 @@ class IpInfoServiceImplTest {
                 "49ru49454o4fvh",
                 apiUrl,
                 HttpClientBuilder.create().build(),
-                new IpAddressDevTransformationServiceImpl(ipAddressOverride)
+                new IpAddressDevOverrideServiceImpl(ipAddressOverride)
             );
 
             String countryCode = service.getCountryCode("8.8.8.8");
