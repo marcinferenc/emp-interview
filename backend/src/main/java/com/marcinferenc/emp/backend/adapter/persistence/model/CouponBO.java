@@ -4,6 +4,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -15,7 +16,13 @@ import lombok.ToString;
 import java.time.Instant;
 
 @Entity
-@Table(name = "coupon")
+@Table(
+    name = "coupon",
+    indexes = {
+        @Index(name = "idx_coupon_country_code", columnList = "coupon_code"),
+        @Index(name = "idx_coupon_coupon_code", columnList = "country_code")
+    }
+)
 @Builder
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
