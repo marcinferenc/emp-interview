@@ -6,6 +6,7 @@ import com.marcinferenc.emp.backend.domain.model.CouponCreationRequestDO;
 import com.marcinferenc.emp.backend.domain.model.CouponCreationResponseDO;
 import com.marcinferenc.emp.backend.port.CouponPersistencePort;
 import com.marcinferenc.emp.backend.port.IpInfoPort;
+import com.marcinferenc.emp.backend.rest.service.CouponValidationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Validate;
@@ -25,7 +26,7 @@ public class CouponDomainServiceImpl implements CouponDomainService {
         validateCouponCodeAllLowerCaseChars(couponClaimRequestDO.getCouponCode());
 
         //translate IP address to country code
-        String countryCode = ipInfoPort.ipAddressToCountryCode(couponClaimRequestDO.getIpAddress());
+        String countryCode = ipInfoPort.getCountryCode(couponClaimRequestDO.getIpAddress());
         couponClaimRequestDO.setCountryCode(countryCode);
 
         return couponPersistencePort.claim(couponClaimRequestDO);

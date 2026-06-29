@@ -10,7 +10,8 @@ import org.springframework.context.annotation.Bean;
 @SpringBootTest(properties = {
 		"spring.autoconfigure.exclude="
 			+ "org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration,"
-			+ "org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfiguration"
+			+ "org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfiguration",
+		"ipinfo.api.key=test-token"
 })
 class CouponBackendApplicationTests {
 

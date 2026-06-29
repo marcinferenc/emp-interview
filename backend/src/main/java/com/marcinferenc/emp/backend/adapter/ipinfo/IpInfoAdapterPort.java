@@ -10,9 +10,10 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class IpInfoAdapterPort implements IpInfoPort {
     private final IpInfoService ipInfoService;
+    private final IpAddressTransformationService ipAddressTransformationService;
 
     @Override
-    public String ipAddressToCountryCode(String ipAddress) {
-        return ipInfoService.ipAddressToCountryCode(ipAddress);
+    public String getCountryCode(String ipAddress) {
+        return ipInfoService.getCountryCode(ipAddress);
     }
 }
