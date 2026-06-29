@@ -14,13 +14,14 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import static com.marcinferenc.emp.backend.adapter.persistence.service.TestConfig.COUNTRY_CODE;
+import static com.marcinferenc.emp.backend.adapter.persistence.service.TestConfig.COUPON_CLAIM_LIMIT_COUNT;
+import static com.marcinferenc.emp.backend.adapter.persistence.service.TestConfig.COUPON_CODE_LENGTH;
+import static com.marcinferenc.emp.backend.adapter.persistence.service.TestConfig.COUPON_COUNT;
+
 @TestComponent
 @Slf4j
 public class CouponCreationTestComponent {
-    static final String COUNTRY_CODE = "US";
-    static final int COUPON_COUNT = 100;
-    static final int COUPON_CODE_LENGTH = 2;
-    static final int COUPON_CLAIM_LIMIT_COUNT = 50;
 
     @Autowired
     private CouponPersistenceServiceImpl couponPersistenceService;

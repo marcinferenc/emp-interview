@@ -2,7 +2,6 @@ package com.marcinferenc.emp.backend.adapter.persistence.service;
 
 import com.marcinferenc.emp.backend.CouponBackendApplication;
 import com.marcinferenc.emp.backend.adapter.persistence.model.CouponBO;
-import com.marcinferenc.emp.backend.domain.model.CouponClaimRequestDO;
 import com.marcinferenc.emp.backend.domain.model.CouponCreationResponseDO;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,7 +15,7 @@ import java.sql.Connection;
 import java.util.List;
 import java.util.Set;
 
-import static com.marcinferenc.emp.backend.adapter.persistence.service.CouponCreationTestComponent.COUPON_CLAIM_LIMIT_COUNT;
+import static com.marcinferenc.emp.backend.adapter.persistence.service.TestConfig.COUPON_CLAIM_LIMIT_COUNT;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(
