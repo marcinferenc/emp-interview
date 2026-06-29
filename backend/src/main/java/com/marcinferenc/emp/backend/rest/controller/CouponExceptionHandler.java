@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class CouponExceptionHandler {
 
     @ExceptionHandler(CouponException.class)
-    public ResponseEntity<CouponErrorResponseDTO> handleBusinessException(CouponException exception) {
+    public ResponseEntity<CouponErrorResponseDTO> handleCouponException(CouponException exception) {
         log.warn("Coupon exception occurred: {}", exception.toString());
 
         CouponErrorResponseDTO response = CouponErrorResponseDTO.builder()

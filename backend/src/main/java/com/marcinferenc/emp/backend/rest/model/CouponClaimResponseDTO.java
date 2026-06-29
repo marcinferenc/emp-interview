@@ -8,14 +8,9 @@ import java.time.Instant;
 @Builder
 @Value
 public class CouponClaimResponseDTO {
-    Status status;
+    CouponResponseStatusDTO status;
     String couponCode;
     String userEmailId;
     Instant timestamp;
     String message;
-}
-
-enum Status {
-    SUCCESS,
-    FAILURE
 }
