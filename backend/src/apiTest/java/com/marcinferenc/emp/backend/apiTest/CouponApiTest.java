@@ -1,5 +1,6 @@
 package com.marcinferenc.emp.backend.apiTest;
 
+import com.google.common.collect.Iterables;
 import com.marcinferenc.emp.backend.adapter.persistence.model.CouponBO;
 import com.marcinferenc.emp.backend.adapter.persistence.service.CouponRepository;
 import com.marcinferenc.emp.backend.rest.model.CouponCreationRequestDTO;
@@ -25,6 +26,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -68,7 +70,7 @@ class CouponApiTest {
         CouponBO coupon = coupons.getFirst();
         assertThat(coupon.getCouponCode()).isEqualTo(couponCode(1));
         assertThat(coupon.getCountryCode()).isEqualTo(COUNTRY_CODE_POLAND);
-        assertThat(coupon.getClaimLimitCount()).isEqualTo(1);
+        assertThat(coupon.getClaimLimitCount()).isEqualTo(couponCreationRequestDTO.getClaimLimitCount());
         assertThat(coupon.getClaimCount()).isZero();
     }
 
@@ -100,16 +102,21 @@ class CouponApiTest {
         List<CouponBO> coupons = couponRepository.findAll();
         assertThat(coupons).hasSize(COUPON_AMOUNT);
         assertThat(coupons).allSatisfy(coupon -> {
-            CouponCreationRequestDTO matchedRequest = couponCreationRequestDTOS.stream()
-                .filter(dto -> dto.getCouponCode().equals(coupon.getCouponCode()))
-                .findFirst().orElseThrow();
-
+            CouponCreationRequestDTO matchedRequest = getMatchingCoupon(coupon, couponCreationRequestDTOS);
             assertThat(coupon.getCountryCode()).isEqualTo(COUNTRY_CODE_GERMANY);
             assertThat(coupon.getClaimLimitCount()).isEqualTo(matchedRequest.getClaimLimitCount());
             assertThat(coupon.getClaimCount()).isZero();
         });
-        assertThat(coupons.stream().map(CouponBO::getCouponCode).collect(java.util.stream.Collectors.toSet()))
+        assertThat(coupons.stream().map(CouponBO::getCouponCode)
+            .collect(Collectors.toSet()))
             .isEqualTo(expectedCouponCodes());
+    }
+
+    private CouponCreationRequestDTO getMatchingCoupon(CouponBO coupon, List<CouponCreationRequestDTO> couponCreationRequestDTOS) {
+        List<CouponCreationRequestDTO> matchedRequests = couponCreationRequestDTOS.stream()
+            .filter(dto -> dto.getCouponCode().equals(coupon.getCouponCode()))
+            .toList();
+        return Iterables.getOnlyElement(matchedRequests);
     }
 
     private CouponCreationRequestDTO createCouponRequest(int couponNumber, String countryCode) {
