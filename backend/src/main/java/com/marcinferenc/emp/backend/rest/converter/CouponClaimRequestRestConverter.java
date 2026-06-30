@@ -2,9 +2,8 @@ package com.marcinferenc.emp.backend.rest.converter;
 
 import com.marcinferenc.emp.backend.domain.model.CouponClaimRequestDO;
 import com.marcinferenc.emp.backend.rest.model.CouponClaimRequestDTO;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
-
-import java.util.Locale;
 
 @Component
 public class CouponClaimRequestRestConverter {
@@ -19,7 +18,7 @@ public class CouponClaimRequestRestConverter {
         }
 
         return CouponClaimRequestDO.builder()
-            .couponCode(toLowerCase(dto.getCouponCode()))
+            .couponCode(StringUtils.lowerCase(dto.getCouponCode()))
             .ipAddress(ipAddress)
             .userEmailId(dto.getUserEmailId())
             .build();
@@ -34,9 +33,5 @@ public class CouponClaimRequestRestConverter {
         res.setCouponCode(domainObject.getCouponCode());
         res.setUserEmailId(domainObject.getUserEmailId());
         return res;
-    }
-
-    private String toLowerCase(String value) {
-        return value == null ? null : value.toLowerCase(Locale.ROOT);
     }
 }

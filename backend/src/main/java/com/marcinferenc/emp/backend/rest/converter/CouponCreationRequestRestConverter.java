@@ -2,6 +2,7 @@ package com.marcinferenc.emp.backend.rest.converter;
 
 import com.marcinferenc.emp.backend.domain.model.CouponCreationRequestDO;
 import com.marcinferenc.emp.backend.rest.model.CouponCreationRequestDTO;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.Locale;
@@ -16,7 +17,7 @@ public class CouponCreationRequestRestConverter {
 
         CouponCreationRequestDO domainObject = CouponCreationRequestDO.builder()
             .couponCode(toLowerCase(dto.getCouponCode()))
-            .countryCode(dto.getCountryCode())
+            .countryCode(StringUtils.upperCase(dto.getCountryCode()))
             .claimLimitCount(dto.getClaimLimitCount())
             .build();
 

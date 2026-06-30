@@ -34,6 +34,16 @@ class CouponCreationRequestRestConverterTest {
     }
 
     @Test
+    void shouldConvertCountryCodeToUpperCaseWhenConvertingDtoToDomainObject() {
+        CouponCreationRequestDTO dto = new CouponCreationRequestDTO();
+        dto.setCountryCode("pl");
+
+        CouponCreationRequestDO domainObject = converter.toDomainObject(dto);
+
+        assertThat(domainObject.getCountryCode()).isEqualTo("PL");
+    }
+
+    @Test
     void shouldConvertDomainObjectToDto() {
         CouponCreationRequestDO domainObject = CouponCreationRequestDO.builder()
             .couponCode("SUMMER2026")
