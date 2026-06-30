@@ -28,11 +28,20 @@ spec:
               containerPort: {{ .Values.persistence.service.port }}
           env:
             - name: POSTGRES_DB
-              value: {{ .Values.persistence.database.name | quote }}
+              valueFrom:
+                secretKeyRef:
+                  name: emp-secret
+                  key: POSTGRES_DB
             - name: POSTGRES_USER
-              value: {{ .Values.persistence.database.user | quote }}
+              valueFrom:
+                secretKeyRef:
+                  name: emp-secret
+                  key: POSTGRES_USER
             - name: POSTGRES_PASSWORD
-              value: {{ .Values.persistence.database.password | quote }}
+              valueFrom:
+                secretKeyRef:
+                  name: emp-secret
+                  key: POSTGRES_PASSWORD
             - name: PGDATA
               value: /var/lib/postgresql/data/pgdata
           volumeMounts:

@@ -28,11 +28,20 @@ spec:
               containerPort: {{ .Values.backend.containerPort }}
           env:
             - name: POSTGRES_URL
-              value: {{ .Values.backend.env.postgresUrl | quote }}
+              valueFrom:
+                secretKeyRef:
+                  name: emp-secret
+                  key: POSTGRES_URL
             - name: POSTGRES_USER
-              value: {{ .Values.backend.env.postgresUser | quote }}
+              valueFrom:
+                secretKeyRef:
+                  name: emp-secret
+                  key: POSTGRES_USER
             - name: POSTGRES_PASSWORD
-              value: {{ .Values.backend.env.postgresPassword | quote }}
+              valueFrom:
+                secretKeyRef:
+                  name: emp-secret
+                  key: POSTGRES_PASSWORD
             - name: IPINFO_API_KEY
               valueFrom:
                 secretKeyRef:
