@@ -3,6 +3,7 @@ package com.marcinferenc.emp.backend.apiTest;
 import com.google.common.collect.Iterables;
 import com.marcinferenc.emp.backend.adapter.persistence.model.CouponBO;
 import com.marcinferenc.emp.backend.adapter.persistence.service.CouponRepository;
+import com.marcinferenc.emp.backend.rest.model.CouponClaimRequestDTO;
 import com.marcinferenc.emp.backend.rest.model.CouponCreationRequestDTO;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,10 +23,12 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -39,9 +42,12 @@ class CouponApiTest {
     @LocalServerPort private int port;
 
     public static final int COUPON_AMOUNT = 10_000;
+//    public static final int COUPON_AMOUNT = 1;
+
     public static final String COUNTRY_CODE_POLAND = "PL";
     public static final String COUNTRY_CODE_GERMANY = "DE";
     public static final String COUPON_CODE = "api-test-coupon";
+    public static final String USER_EMAIL_ID = "user@server.com";
 
     private final HttpClient httpClient = HttpClient.newHttpClient();
     @Autowired private CouponRepository couponRepository;
@@ -78,9 +84,57 @@ class CouponApiTest {
     void shouldCreateCouponsConcurrentlyOverHttp() throws Exception {
         List<CouponCreationRequestDTO> couponCreationRequestDTOS = IntStream.rangeClosed(1, COUPON_AMOUNT)
             .boxed()
-            .map(couponNumber -> createCouponRequest(couponNumber, COUNTRY_CODE_GERMANY))
+            .map(couponNumber -> createCouponRequest(couponNumber, COUNTRY_CODE_POLAND))
             .toList();
 
+        create(couponCreationRequestDTOS);
+        assertCreated(couponCreationRequestDTOS);
+    }
+
+    @Test
+    void shouldCreateAndClaimCouponsConcurrentlyOverHttp() throws Exception {
+        List<CouponCreationRequestDTO> couponCreationRequestDTOS = IntStream.rangeClosed(1, COUPON_AMOUNT)
+            .boxed()
+            .map(couponNumber -> createCouponRequest(couponNumber, COUNTRY_CODE_POLAND))
+            .toList();
+
+        create(couponCreationRequestDTOS);
+        assertCreated(couponCreationRequestDTOS);
+
+        claim(couponCreationRequestDTOS);
+    }
+
+    private void claim(List<CouponCreationRequestDTO> couponCreationRequestDTOS) throws ExecutionException, InterruptedException, TimeoutException {
+        List<CouponClaimRequestDTO> couponClaimRequestDTOS = couponCreationRequestDTOS.stream()
+            .map(couponCreationRequestDTO -> {
+                CouponClaimRequestDTO couponClaimRequestDTO = new CouponClaimRequestDTO();
+                couponClaimRequestDTO.setCouponCode(couponCreationRequestDTO.getCouponCode());
+                couponClaimRequestDTO.setUserEmailId(USER_EMAIL_ID);
+                return couponClaimRequestDTO;
+            })
+            .toList();
+
+        List<Callable<HttpResponse<String>>> tasks = couponClaimRequestDTOS.stream()
+            .map(
+                couponClaimRequestDTO ->
+                    (Callable<HttpResponse<String>>) () -> claimCoupon(couponClaimRequestDTO))
+            .toList();
+
+        try (ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors())) {
+            List<Future<HttpResponse<String>>> futures = tasks.stream()
+                .map(executorService::submit)
+                .toList();
+
+            for (Future<HttpResponse<String>> future : futures) {
+                HttpResponse<String> response = future.get(OPERATION_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                assertThat(response.statusCode()).isEqualTo(200);
+                assertThat(response.body()).contains("claimed OK:");
+            }
+        }
+
+    }
+
+    private void create(List<CouponCreationRequestDTO> couponCreationRequestDTOS) throws InterruptedException, ExecutionException, TimeoutException {
         List<Callable<HttpResponse<String>>> tasks = couponCreationRequestDTOS.stream()
             .map(
                 couponCreationRequestDTO ->
@@ -98,12 +152,14 @@ class CouponApiTest {
                 assertThat(response.body()).contains("\"message\":\"Coupon created OK:");
             }
         }
+    }
 
+    private void assertCreated(List<CouponCreationRequestDTO> couponCreationRequestDTOS) {
         List<CouponBO> coupons = couponRepository.findAll();
         assertThat(coupons).hasSize(COUPON_AMOUNT);
         assertThat(coupons).allSatisfy(coupon -> {
             CouponCreationRequestDTO matchedRequest = getMatchingCoupon(coupon, couponCreationRequestDTOS);
-            assertThat(coupon.getCountryCode()).isEqualTo(COUNTRY_CODE_GERMANY);
+            assertThat(coupon.getCountryCode()).isEqualTo(matchedRequest.getCountryCode());
             assertThat(coupon.getClaimLimitCount()).isEqualTo(matchedRequest.getClaimLimitCount());
             assertThat(coupon.getClaimCount()).isZero();
         });
@@ -138,6 +194,17 @@ class CouponApiTest {
         return httpClient.send(request, HttpResponse.BodyHandlers.ofString());
     }
 
+    private HttpResponse<String> claimCoupon(CouponClaimRequestDTO couponRequest) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create("http://localhost:" + port + "/claim"))
+            .timeout(Duration.ofSeconds(OPERATION_TIMEOUT_SECONDS))
+            .header("Content-Type", "application/json")
+            .POST(HttpRequest.BodyPublishers.ofString(toJson(couponRequest)))
+            .build();
+
+        return httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+    }
+
     private String toJson(CouponCreationRequestDTO couponRequest) {
         return """
             {
@@ -149,6 +216,18 @@ class CouponApiTest {
             escapeJson(couponRequest.getCouponCode()),
             escapeJson(couponRequest.getCountryCode()),
             couponRequest.getClaimLimitCount()
+        );
+    }
+
+    private String toJson(CouponClaimRequestDTO couponRequest) {
+        return """
+            {
+              "couponCode": "%s",
+              "userEmailId": "%s"
+            }
+            """.formatted(
+            escapeJson(couponRequest.getCouponCode()),
+            escapeJson(couponRequest.getUserEmailId())
         );
     }
 

@@ -12,7 +12,7 @@ public interface CouponRepository extends JpaRepository<CouponBO, Long> {
     Optional<CouponBO> findByCouponCode(String couponCode);
     Optional<CouponBO> findByCouponCodeAndCountryCode(String couponCode, String countryCode);
 
-    @Modifying
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("""
         update CouponBO c
         set c.claimCount = c.claimCount + 1
