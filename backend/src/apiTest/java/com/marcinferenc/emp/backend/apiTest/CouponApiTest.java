@@ -2,6 +2,7 @@ package com.marcinferenc.emp.backend.apiTest;
 
 import com.marcinferenc.emp.backend.adapter.persistence.model.CouponBO;
 import com.marcinferenc.emp.backend.adapter.persistence.service.CouponRepository;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,13 +33,21 @@ class CouponApiTest {
     public static final String COUPON_CODE = "api-test-coupon";
     private static final int OPERATION_TIMEOUT_SECONDS = 3;
 
+    private final HttpClient httpClient = HttpClient.newHttpClient();
+
     @LocalServerPort private int port;
     @Autowired private CouponRepository couponRepository;
+
+    @AfterEach
+    void closeHttpClient() {
+        httpClient.close();
+    }
 
     @BeforeEach
     void deleteCoupons() {
         couponRepository.deleteAll();
         couponRepository.flush();
+
     }
 
     @Test
@@ -100,10 +109,7 @@ class CouponApiTest {
                 """.formatted(couponCode(couponNumber), COUNTRY_CODE, couponLimit)))
             .build();
 
-        HttpResponse<String> response = HttpClient.newHttpClient()
-            .send(request, HttpResponse.BodyHandlers.ofString());
-
-        return response;
+        return httpClient.send(request, HttpResponse.BodyHandlers.ofString());
     }
 
     private Set<String> expectedCouponCodes() {
