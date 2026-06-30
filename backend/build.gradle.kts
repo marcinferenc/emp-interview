@@ -73,6 +73,11 @@ tasks.register<Test>("integrationTest") {
 	testClassesDirs = integrationTest.output.classesDirs
 	classpath = integrationTest.runtimeClasspath
 	shouldRunAfter(tasks.test)
+//	environment("POSTGRES_URL", "jdbc:postgresql://localhost:5432/emp_coupons_dev")
+//	environment("POSTGRES_USER", "emp_coupons_usr")
+//	environment("POSTGRES_PASSWORD", "postgres@emp_c0up0ns")
+//	environment("IPINFO_API_KEY", "test-api-key")
+//	environment("IPINFO_IP_ADDRESS_OVERRIDE", "127.0.0.1")
 	useJUnitPlatform()
 }
 
@@ -82,6 +87,11 @@ tasks.register<Test>("apiTest") {
 	testClassesDirs = apiTest.output.classesDirs
 	classpath = apiTest.runtimeClasspath
 	shouldRunAfter(tasks.test)
+//	environment("POSTGRES_URL", "jdbc:postgresql://localhost:5432/emp_coupons_dev")
+//	environment("POSTGRES_USER", "emp_coupons_usr")
+//	environment("POSTGRES_PASSWORD", "postgres@emp_c0up0ns")
+//	environment("IPINFO_API_KEY", "test-api-key")
+//	environment("IPINFO_IP_ADDRESS_OVERRIDE", "127.0.0.1")
 	useJUnitPlatform()
 }
 
