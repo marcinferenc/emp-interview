@@ -104,10 +104,12 @@ class CouponApiTest {
         create(couponCreationRequestDTOS);
         assertCreated(couponCreationRequestDTOS);
 
-        claim(couponCreationRequestDTOS);
+        claimOnce(couponCreationRequestDTOS);
     }
 
-    private void claim(List<CouponCreationRequestDTO> couponCreationRequestDTOS) throws ExecutionException, InterruptedException, TimeoutException {
+    private void claimOnce(List<CouponCreationRequestDTO> couponCreationRequestDTOS)
+        throws ExecutionException, InterruptedException, TimeoutException {
+
         List<CouponClaimRequestDTO> couponClaimRequestDTOS = couponCreationRequestDTOS.stream()
             .map(couponCreationRequestDTO -> {
                 CouponClaimRequestDTO couponClaimRequestDTO = new CouponClaimRequestDTO();
@@ -137,7 +139,9 @@ class CouponApiTest {
 
     }
 
-    private void create(List<CouponCreationRequestDTO> couponCreationRequestDTOS) throws InterruptedException, ExecutionException, TimeoutException {
+    private void create(List<CouponCreationRequestDTO> couponCreationRequestDTOS)
+        throws InterruptedException, ExecutionException, TimeoutException {
+
         List<Callable<HttpResponse<String>>> tasks = couponCreationRequestDTOS.stream()
             .map(
                 couponCreationRequestDTO ->
