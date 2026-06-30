@@ -105,6 +105,15 @@ class CouponApiTest {
         assertCreated(couponCreationRequestDTOS);
 
         claimOnce(couponCreationRequestDTOS);
+        assertClaimedOnce(couponCreationRequestDTOS);
+    }
+
+    private void assertClaimedOnce(List<CouponCreationRequestDTO> couponCreationRequestDTOS) {
+        couponRepository.findAll().forEach(coupon -> {
+            CouponCreationRequestDTO matchedRequest = getMatchingCoupon(coupon, couponCreationRequestDTOS);
+            assertThat(coupon.getCouponCode()).isEqualTo(matchedRequest.getCouponCode());
+            assertThat(coupon.getClaimCount()).isEqualTo(1);
+        });
     }
 
     private void claimOnce(List<CouponCreationRequestDTO> couponCreationRequestDTOS)
