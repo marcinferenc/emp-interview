@@ -1,18 +1,12 @@
 package com.marcinferenc.emp.backend.adapter.persistence.service;
 
-import com.marcinferenc.emp.backend.adapter.persistence.converter.CouponClaimResponsePersistenceConverter;
-import com.marcinferenc.emp.backend.adapter.persistence.converter.CouponCreationRequestPersistenceConverter;
-import com.marcinferenc.emp.backend.adapter.persistence.converter.CouponCreationResponsePersistenceConverter;
 import com.marcinferenc.emp.backend.adapter.persistence.model.CouponBO;
-import com.marcinferenc.emp.backend.adapter.persistence.model.CouponClaimResponsePO;
-import com.marcinferenc.emp.backend.adapter.persistence.model.CouponCreationRequestPO;
-import com.marcinferenc.emp.backend.adapter.persistence.model.CouponCreationResponsePO;
-import com.marcinferenc.emp.backend.adapter.persistence.model.CouponResponseStatusPO;
 import com.marcinferenc.emp.backend.domain.model.CouponClaimRequestDO;
 import com.marcinferenc.emp.backend.domain.model.CouponClaimResponseDO;
 import com.marcinferenc.emp.backend.domain.model.CouponCreationRequestDO;
 import com.marcinferenc.emp.backend.domain.model.CouponCreationResponseDO;
 import com.marcinferenc.emp.backend.domain.model.CouponDO;
+import com.marcinferenc.emp.backend.domain.model.CouponResponseStatusDO;
 import com.marcinferenc.emp.backend.rest.ErrorCode;
 import com.marcinferenc.emp.backend.rest.model.CouponException;
 import lombok.RequiredArgsConstructor;
@@ -30,24 +24,18 @@ public class CouponPersistenceServiceImpl implements CouponPersistenceService {
     private final CouponRepository couponRepository;
     private final TransactionTemplate transactionTemplate;
 
-    private final CouponCreationRequestPersistenceConverter couponCreationRequestPersistenceConverter;
-    private final CouponCreationResponsePersistenceConverter couponCreationResponsePersistenceConverter;
-
-    private final CouponClaimResponsePersistenceConverter couponClaimResponsePersistenceConverter;
-
     @Override
     public CouponCreationResponseDO create(CouponCreationRequestDO couponCreationRequestDO) {
-        CouponCreationRequestPO couponCreationRequestPO = couponCreationRequestPersistenceConverter.toPersistenceObject(couponCreationRequestDO);
-
         CouponBO couponBO = CouponBO.builder()
-            .couponCode(couponCreationRequestPO.getCouponCode())
-            .countryCode(couponCreationRequestPO.getCountryCode())
-            .claimLimitCount(couponCreationRequestPO.getClaimLimitCount())
-            .claimCount(couponCreationRequestPO.getClaimCount())
-            .createdAt(couponCreationRequestPO.getCreatedAt())
+            .couponCode(couponCreationRequestDO.getCountryCode())
+            .couponCode(couponCreationRequestDO.getCouponCode())
+            .countryCode(couponCreationRequestDO.getCountryCode())
+            .claimLimitCount(couponCreationRequestDO.getClaimLimitCount())
+            .claimCount(couponCreationRequestDO.getClaimCount())
+            .createdAt(couponCreationRequestDO.getCreatedAt())
             .build();
 
-        CouponCreationResponsePO couponCreationResponsePO = null;
+        CouponCreationResponseDO couponCreationResponseDO = null;
         CouponBO persistedCoupon = transactionTemplate.execute(status -> {
             couponRepository.save(couponBO);
             couponRepository.flush();
@@ -55,12 +43,12 @@ public class CouponPersistenceServiceImpl implements CouponPersistenceService {
         });
 
         log.info("persisted coupon: {}", persistedCoupon);
-        couponCreationResponsePO = CouponCreationResponsePO.builder()
-            .status(CouponResponseStatusPO.SUCCESS)
+        couponCreationResponseDO = CouponCreationResponseDO.builder()
+            .status(CouponResponseStatusDO.SUCCESS)
             .message(String.format("Coupon created OK: %s", persistedCoupon))
             .build();
 
-        return couponCreationResponsePersistenceConverter.toDomainObject(couponCreationResponsePO);
+        return couponCreationResponseDO;
     }
 
     @Override
@@ -76,7 +64,7 @@ public class CouponPersistenceServiceImpl implements CouponPersistenceService {
             Integer claimLimitCount = couponBO.getClaimLimitCount();
             String retrievedCountryCode = couponBO.getCountryCode();
 
-            CouponClaimResponsePO result = createClaimResult(
+            CouponClaimResponseDO result = createClaimResult(
                 couponBO,
                 requestedCouponCode,
                 retrievedCountryCode,
@@ -84,7 +72,7 @@ public class CouponPersistenceServiceImpl implements CouponPersistenceService {
                 updatedClaimCount,
                 claimLimitCount);
 
-            return couponClaimResponsePersistenceConverter.toDomainObject(result);
+            return result;
 
         } catch (Exception e) {
             log.error("Error while claiming coupon {}", couponClaimRequestDO.getCouponCode(), e);
@@ -92,14 +80,14 @@ public class CouponPersistenceServiceImpl implements CouponPersistenceService {
         }
     }
 
-    private CouponClaimResponsePO createClaimResult(CouponBO couponBO,
+    private CouponClaimResponseDO createClaimResult(CouponBO couponBO,
                                                     String requestedCouponCode,
                                                     String retrievedCountryCode,
                                                     String userEmailId,
                                                     Integer updatedClaimCount,
                                                     Integer claimLimitCount) {
-        return CouponClaimResponsePO.builder()
-            .status(CouponResponseStatusPO.SUCCESS)
+        return CouponClaimResponseDO.builder()
+            .status(CouponResponseStatusDO.SUCCESS)
             .userEmailId(userEmailId)
             .couponCode(couponBO.getCouponCode())
             .timestamp(Instant.now())
@@ -142,11 +130,8 @@ public class CouponPersistenceServiceImpl implements CouponPersistenceService {
 
         return allCouponBOs;
     }
+
     //------------------------------------------------------
-
-    private record ClaimUpdateResult(CouponBO couponBO) {
-    }
-
     private CouponException createCouponNotFoundException(CouponClaimRequestDO couponClaimRequestDO) {
         String couponCode = couponClaimRequestDO.getCouponCode();
         String countryCode = couponClaimRequestDO.getCountryCode();

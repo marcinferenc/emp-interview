@@ -17,7 +17,7 @@ public class CouponException extends RuntimeException {
     }
 
     public CouponException(ErrorCode errorCode, String message, Throwable cause) {
-        super(message);
+        super(message, cause);
         this.errorCode = errorCode;
         this.message = message;
     }
