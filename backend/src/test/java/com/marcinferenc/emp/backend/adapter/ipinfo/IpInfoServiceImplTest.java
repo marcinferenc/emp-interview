@@ -132,9 +132,8 @@ class IpInfoServiceImplTest {
             );
 
             assertThatThrownBy(() -> service.getCountryCode(ipAddress))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("IpInfo API request failed")
-                .hasCauseInstanceOf(InterruptedIOException.class);
+                .isInstanceOf(CouponException.class)
+                .hasMessage("IpInfo API request failed");
         } finally {
             server.stop(0);
         }
