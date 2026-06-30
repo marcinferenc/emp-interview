@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @RestControllerAdvice
 @Slf4j
@@ -25,6 +26,14 @@ public class CouponExceptionHandler {
         return ResponseEntity
             .status(resolveStatus(exception))
             .body(response);
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    @SuppressWarnings("unused")
+    public ResponseEntity<Void> handleNoResourceFoundException() {
+        return ResponseEntity
+            .status(HttpStatus.NOT_FOUND)
+            .build();
     }
 
     @ExceptionHandler(Exception.class)
@@ -46,8 +55,8 @@ public class CouponExceptionHandler {
             case VALIDATION_ERROR -> HttpStatus.BAD_REQUEST;
             case COUPON_NOT_FOUND -> HttpStatus.NOT_FOUND;
             case CLAIM_LIMIT_EXCEEDED -> HttpStatus.CONFLICT;
-            case COUNTRY_CODE_UNKNOWN -> HttpStatus.INTERNAL_SERVER_ERROR;
-            case COUNTRY_CODE_DETECTION_FAILED -> HttpStatus.INTERNAL_SERVER_ERROR;
+            case COUNTRY_CODE_UNKNOWN,
+                 COUNTRY_CODE_DETECTION_FAILED -> HttpStatus.INTERNAL_SERVER_ERROR;
         };
     }
 }
