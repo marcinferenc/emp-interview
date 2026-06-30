@@ -52,6 +52,7 @@ dependencies {
 	implementation("org.apache.httpcomponents.client5:httpclient5:5.6.1")
 
 	implementation("com.github.ben-manes.caffeine:caffeine")
+	implementation("io.github.resilience4j:resilience4j-circuitbreaker:2.3.0")
 
 	// Source: https://mvnrepository.com/artifact/com.google.guava/guava
 	implementation("com.google.guava:guava:33.6.0-jre")

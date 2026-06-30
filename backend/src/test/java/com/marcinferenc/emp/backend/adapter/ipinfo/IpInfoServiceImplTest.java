@@ -3,6 +3,8 @@ package com.marcinferenc.emp.backend.adapter.ipinfo;
 import com.marcinferenc.emp.backend.rest.ErrorCode;
 import com.marcinferenc.emp.backend.rest.model.CouponException;
 import com.sun.net.httpserver.HttpServer;
+import io.github.resilience4j.circuitbreaker.CircuitBreaker;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.junit.jupiter.api.Test;
 
@@ -11,6 +13,7 @@ import java.io.InterruptedIOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -137,6 +140,49 @@ class IpInfoServiceImplTest {
         }
     }
 
+    @Test
+    void shouldFailFastWhenCircuitBreakerIsOpen() throws IOException {
+        HttpServer server = HttpServer.create(new InetSocketAddress(0), 0);
+        String ipAddress = "8.8.8.8";
+        AtomicInteger requestCount = new AtomicInteger();
+        server.createContext("/lite/" + ipAddress, exchange -> {
+            requestCount.incrementAndGet();
+            byte[] response = "{\"error\":\"IpInfo unavailable\"}".getBytes(StandardCharsets.UTF_8);
+            exchange.sendResponseHeaders(500, response.length);
+            exchange.getResponseBody().write(response);
+            exchange.close();
+        });
+        server.start();
+
+        try {
+            IpInfoServiceImpl service = new IpInfoServiceImpl(
+                "49ru49454o4fvh",
+                createApiUrl(server),
+                HttpClientBuilder.create().build(),
+                new IpAddressOverrideServiceImpl(),
+                createTestCircuitBreaker()
+            );
+
+            assertThatThrownBy(() -> service.getCountryCode(ipAddress))
+                .isInstanceOf(CouponException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.COUNTRY_CODE_UNKNOWN);
+            assertThatThrownBy(() -> service.getCountryCode(ipAddress))
+                .isInstanceOf(CouponException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.COUNTRY_CODE_UNKNOWN);
+
+            assertThatThrownBy(() -> service.getCountryCode(ipAddress))
+                .isInstanceOf(CouponException.class)
+                .hasMessage("IpInfo circuit breaker is open, failing fast")
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.COUNTRY_CODE_DETECTION_FAILED);
+            assertThat(requestCount.get()).isEqualTo(2);
+        } finally {
+            server.stop(0);
+        }
+    }
+
     private IpInfoServiceImpl createService(HttpServer server) {
         return new IpInfoServiceImpl(
             "49ru49454o4fvh",
@@ -150,4 +196,16 @@ class IpInfoServiceImplTest {
         return "http://localhost:" + server.getAddress().getPort() + "/lite/";
     }
 
+    private CircuitBreaker createTestCircuitBreaker() {
+        CircuitBreakerConfig config = CircuitBreakerConfig.custom()
+            .failureRateThreshold(50)
+            .slidingWindowType(CircuitBreakerConfig.SlidingWindowType.COUNT_BASED)
+            .slidingWindowSize(2)
+            .minimumNumberOfCalls(2)
+            .waitDurationInOpenState(Duration.ofMinutes(1))
+            .permittedNumberOfCallsInHalfOpenState(1)
+            .build();
+
+        return CircuitBreaker.of("ipInfoTest", config);
+    }
 }

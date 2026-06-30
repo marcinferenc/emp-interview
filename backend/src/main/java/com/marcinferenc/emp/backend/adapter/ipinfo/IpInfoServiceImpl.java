@@ -2,6 +2,9 @@ package com.marcinferenc.emp.backend.adapter.ipinfo;
 
 import com.marcinferenc.emp.backend.rest.ErrorCode;
 import com.marcinferenc.emp.backend.rest.model.CouponException;
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
+import io.github.resilience4j.circuitbreaker.CircuitBreaker;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
@@ -19,6 +22,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -33,11 +37,21 @@ public class IpInfoServiceImpl implements IpInfoService {
     private final CloseableHttpClient httpClient;
     private final String apiKey;
     private final String apiUrl;
+    private final CircuitBreaker circuitBreaker;
 
     @Autowired
     public IpInfoServiceImpl(
         @Value("${ipinfo.api.key}") String apiKey,
         @Value("${ipinfo.api.url}") String apiUrl,
+        IpAddressOverrideService ipAddressOverrideService,
+        CircuitBreaker ipInfoCircuitBreaker
+    ) {
+        this(apiKey, apiUrl, createHttpClient(), ipAddressOverrideService, ipInfoCircuitBreaker);
+    }
+
+    public IpInfoServiceImpl(
+        String apiKey,
+        String apiUrl,
         IpAddressOverrideService ipAddressOverrideService
     ) {
         this(apiKey, apiUrl, createHttpClient(), ipAddressOverrideService);
@@ -61,16 +75,33 @@ public class IpInfoServiceImpl implements IpInfoService {
         CloseableHttpClient httpClient,
         IpAddressOverrideService ipAddressOverrideService
     ) {
+        this(apiKey, apiUrl, httpClient, ipAddressOverrideService, createDefaultCircuitBreaker());
+    }
+
+    IpInfoServiceImpl(
+        String apiKey,
+        String apiUrl,
+        CloseableHttpClient httpClient,
+        IpAddressOverrideService ipAddressOverrideService,
+        CircuitBreaker circuitBreaker
+    ) {
         this.apiKey = apiKey;
         this.apiUrl = apiUrl;
         this.httpClient = httpClient;
         this.ipAddressOverrideService = ipAddressOverrideService;
+        this.circuitBreaker = circuitBreaker;
     }
 
     @Override
     public String getCountryCode(String ipAddress) {
         String transformedIpAddress = ipAddressOverrideService.override(ipAddress);
-        return getCountryCodeInternal(transformedIpAddress);
+        try {
+            return circuitBreaker.executeSupplier(() -> getCountryCodeInternal(transformedIpAddress));
+        } catch (CallNotPermittedException e) {
+            throw new CouponException(
+                ErrorCode.COUNTRY_CODE_DETECTION_FAILED,
+                "IpInfo circuit breaker is open, failing fast");
+        }
     }
 
     public String getCountryCodeInternal(String ipAddress) {
@@ -95,7 +126,7 @@ public class IpInfoServiceImpl implements IpInfoService {
                 return countryCode;
             });
         } catch (IOException e) {
-            throw new IllegalStateException("IpInfo API request failed", e);
+            throw new CouponException(ErrorCode.COUNTRY_CODE_DETECTION_FAILED, "IpInfo API request failed", e);
         }
     }
 
@@ -119,5 +150,18 @@ public class IpInfoServiceImpl implements IpInfoService {
         }
 
         return null;
+    }
+
+    private static CircuitBreaker createDefaultCircuitBreaker() {
+        CircuitBreakerConfig config = CircuitBreakerConfig.custom()
+            .failureRateThreshold(50)
+            .slidingWindowType(CircuitBreakerConfig.SlidingWindowType.COUNT_BASED)
+            .slidingWindowSize(10)
+            .minimumNumberOfCalls(5)
+            .waitDurationInOpenState(Duration.ofSeconds(30))
+            .permittedNumberOfCallsInHalfOpenState(2)
+            .build();
+
+        return CircuitBreaker.of("ipInfoTest", config);
     }
 }

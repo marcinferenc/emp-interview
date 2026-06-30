@@ -15,4 +15,10 @@ public class CouponException extends RuntimeException {
         this.errorCode = errorCode;
         this.message = message;
     }
+
+    public CouponException(ErrorCode errorCode, String message, Throwable cause) {
+        super(message);
+        this.errorCode = errorCode;
+        this.message = message;
+    }
 }
