@@ -42,7 +42,6 @@ class CouponApiTest {
     @LocalServerPort private int port;
 
     public static final int COUPON_AMOUNT = 10_000;
-//    public static final int COUPON_AMOUNT = 1;
 
     public static final String COUNTRY_CODE_POLAND = "PL";
     public static final String COUNTRY_CODE_GERMANY = "DE";
@@ -82,9 +81,11 @@ class CouponApiTest {
 
     @Test
     void shouldCreateCouponsConcurrentlyOverHttp() throws Exception {
+        String countryCode = COUNTRY_CODE_POLAND;
+
         List<CouponCreationRequestDTO> couponCreationRequestDTOS = IntStream.rangeClosed(1, COUPON_AMOUNT)
             .boxed()
-            .map(couponNumber -> createCouponRequest(couponNumber, COUNTRY_CODE_POLAND))
+            .map(couponNumber -> createCouponRequest(couponNumber, countryCode))
             .toList();
 
         create(couponCreationRequestDTOS);
@@ -93,9 +94,11 @@ class CouponApiTest {
 
     @Test
     void shouldCreateAndClaimCouponsConcurrentlyOverHttp() throws Exception {
+        String countryCode = COUNTRY_CODE_POLAND;
+
         List<CouponCreationRequestDTO> couponCreationRequestDTOS = IntStream.rangeClosed(1, COUPON_AMOUNT)
             .boxed()
-            .map(couponNumber -> createCouponRequest(couponNumber, COUNTRY_CODE_POLAND))
+            .map(couponNumber -> createCouponRequest(couponNumber, countryCode))
             .toList();
 
         create(couponCreationRequestDTOS);
