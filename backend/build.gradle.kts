@@ -54,6 +54,9 @@ dependencies {
 
 	// Source: https://mvnrepository.com/artifact/com.google.guava/guava
 	implementation("com.google.guava:guava:33.6.0-jre")
+
+	// Source: https://mvnrepository.com/artifact/org.apache.commons/commons-collections4
+	implementation("org.apache.commons:commons-collections4:4.5.0")
 }
 
 configurations[integrationTest.implementationConfigurationName].extendsFrom(configurations.testImplementation.get())

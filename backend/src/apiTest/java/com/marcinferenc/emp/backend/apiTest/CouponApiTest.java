@@ -1,10 +1,13 @@
 package com.marcinferenc.emp.backend.apiTest;
 
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.marcinferenc.emp.backend.adapter.persistence.model.CouponBO;
 import com.marcinferenc.emp.backend.adapter.persistence.service.CouponRepository;
 import com.marcinferenc.emp.backend.rest.model.CouponClaimRequestDTO;
 import com.marcinferenc.emp.backend.rest.model.CouponCreationRequestDTO;
+import org.apache.commons.collections4.ListUtils;
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 
+import javax.swing.plaf.ListUI;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -45,6 +49,7 @@ class CouponApiTest {
 
     public static final String COUNTRY_CODE_POLAND = "PL";
     public static final String COUNTRY_CODE_GERMANY = "DE";
+    public static final String COUNTRY_CODE_FRANCE = "FR";
     public static final String COUPON_CODE = "api-test-coupon";
     public static final String USER_EMAIL_ID = "user@server.com";
 
@@ -60,6 +65,36 @@ class CouponApiTest {
     void deleteCoupons() {
         couponRepository.deleteAll();
         couponRepository.flush();
+    }
+    
+    @Test
+    void checkCrossCountryCoupon() throws ExecutionException, InterruptedException, TimeoutException {
+        //given
+        CouponCreationRequestDTO couponCreationRequestDTOPoland = createCouponRequest(1, COUNTRY_CODE_POLAND);
+        CouponCreationRequestDTO couponCreationRequestDTOGermany = createCouponRequest(2, COUNTRY_CODE_GERMANY);
+        CouponCreationRequestDTO couponCreationRequestDTOFrance = createCouponRequest(3, COUNTRY_CODE_GERMANY);
+
+        List<CouponCreationRequestDTO> allCouponCreationRequests =
+            List.of(couponCreationRequestDTOPoland, couponCreationRequestDTOGermany, couponCreationRequestDTOFrance);
+
+        create(allCouponCreationRequests);
+
+        //when
+        claimOnce(List.of(couponCreationRequestDTOPoland));
+        claimOnce(List.of(couponCreationRequestDTOGermany));
+        claimOnce(List.of(couponCreationRequestDTOFrance));
+
+        //then
+        List<CouponBO> coupons = couponRepository.findAll();
+        assertThat(coupons).hasSize(3);
+
+        for (CouponBO coupon : coupons) {
+            if (coupon.getCouponCode().equals(couponCreationRequestDTOPoland.getCouponCode())) {
+                assertThat(coupon.getClaimCount()).isEqualTo(1);
+            } else {
+                assertThat(coupon.getClaimCount()).isEqualTo(0);
+            }
+        }
     }
 
     @Test
@@ -82,29 +117,33 @@ class CouponApiTest {
     @Test
     void shouldCreateCouponsConcurrentlyOverHttp() throws Exception {
         String countryCode = COUNTRY_CODE_POLAND;
+        int couponAmount = COUPON_AMOUNT;
 
-        List<CouponCreationRequestDTO> couponCreationRequestDTOS = IntStream.rangeClosed(1, COUPON_AMOUNT)
-            .boxed()
-            .map(couponNumber -> createCouponRequest(couponNumber, countryCode))
-            .toList();
+        List<CouponCreationRequestDTO> couponCreationRequestDTOS = generateCoupons(countryCode, couponAmount);
 
         create(couponCreationRequestDTOS);
         assertCreated(couponCreationRequestDTOS);
     }
 
-    @Test
-    void shouldCreateAndClaimCouponsConcurrentlyOverHttp() throws Exception {
-        String countryCode = COUNTRY_CODE_POLAND;
-
-        List<CouponCreationRequestDTO> couponCreationRequestDTOS = IntStream.rangeClosed(1, COUPON_AMOUNT)
+    private @NonNull List<CouponCreationRequestDTO> generateCoupons(String countryCode, int couponAmount) {
+        List<CouponCreationRequestDTO> couponCreationRequestDTOS = IntStream.rangeClosed(1, couponAmount)
             .boxed()
             .map(couponNumber -> createCouponRequest(couponNumber, countryCode))
             .toList();
+        return couponCreationRequestDTOS;
+    }
+
+    @Test
+    void shouldCreateAndClaimCouponsConcurrentlyOverHttp() throws Exception {
+        String countryCode = COUNTRY_CODE_POLAND;
+        int couponAmount = COUPON_AMOUNT;
+
+        List<CouponCreationRequestDTO> couponCreationRequestDTOS = generateCoupons(countryCode, couponAmount);
 
         create(couponCreationRequestDTOS);
         assertCreated(couponCreationRequestDTOS);
 
-        claimOnce(couponCreationRequestDTOS);
+        claimOnce(couponCreationRequestDTOS, true);
         assertClaimedOnce(couponCreationRequestDTOS);
     }
 
@@ -116,7 +155,7 @@ class CouponApiTest {
         });
     }
 
-    private void claimOnce(List<CouponCreationRequestDTO> couponCreationRequestDTOS)
+    private void claimOnce(List<CouponCreationRequestDTO> couponCreationRequestDTOS, boolean doAssert)
         throws ExecutionException, InterruptedException, TimeoutException {
 
         List<CouponClaimRequestDTO> couponClaimRequestDTOS = couponCreationRequestDTOS.stream()
@@ -141,11 +180,19 @@ class CouponApiTest {
 
             for (Future<HttpResponse<String>> future : futures) {
                 HttpResponse<String> response = future.get(OPERATION_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-                assertThat(response.statusCode()).isEqualTo(200);
-                assertThat(response.body()).contains("claimed OK:");
+
+                if (doAssert) {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    assertThat(response.body()).contains("claimed OK:");
+                }
             }
         }
+    }
 
+    private void claimOnce(List<CouponCreationRequestDTO> couponCreationRequestDTOS)
+        throws ExecutionException, InterruptedException, TimeoutException {
+
+        claimOnce(couponCreationRequestDTOS, false);
     }
 
     private void create(List<CouponCreationRequestDTO> couponCreationRequestDTOS)
