@@ -17,6 +17,13 @@ val integrationTest = sourceSets.create("integrationTest") {
 	runtimeClasspath += output + compileClasspath
 }
 
+val apiTest = sourceSets.create("apiTest") {
+	java.srcDir("src/apiTest/java")
+	resources.srcDir("src/apiTest/resources")
+	compileClasspath += sourceSets.main.get().output + configurations.testRuntimeClasspath.get()
+	runtimeClasspath += output + compileClasspath
+}
+
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("org.springframework.boot:spring-boot-starter-cache")
@@ -51,6 +58,11 @@ configurations[integrationTest.runtimeOnlyConfigurationName].extendsFrom(configu
 configurations[integrationTest.compileOnlyConfigurationName].extendsFrom(configurations.testCompileOnly.get())
 configurations[integrationTest.annotationProcessorConfigurationName].extendsFrom(configurations.testAnnotationProcessor.get())
 
+configurations[apiTest.implementationConfigurationName].extendsFrom(configurations.testImplementation.get())
+configurations[apiTest.runtimeOnlyConfigurationName].extendsFrom(configurations.testRuntimeOnly.get())
+configurations[apiTest.compileOnlyConfigurationName].extendsFrom(configurations.testCompileOnly.get())
+configurations[apiTest.annotationProcessorConfigurationName].extendsFrom(configurations.testAnnotationProcessor.get())
+
 tasks.withType<Test> {
 	useJUnitPlatform()
 }
@@ -64,8 +76,18 @@ tasks.register<Test>("integrationTest") {
 	useJUnitPlatform()
 }
 
+tasks.register<Test>("apiTest") {
+	description = "Runs API tests against a Spring Boot HTTP context."
+	group = "verification"
+	testClassesDirs = apiTest.output.classesDirs
+	classpath = apiTest.runtimeClasspath
+	shouldRunAfter(tasks.test)
+	useJUnitPlatform()
+}
+
 tasks.check {
 	dependsOn(tasks.named("integrationTest"))
+	dependsOn(tasks.named("apiTest"))
 }
 
 tasks.register("printPostgresEnvVars") {
