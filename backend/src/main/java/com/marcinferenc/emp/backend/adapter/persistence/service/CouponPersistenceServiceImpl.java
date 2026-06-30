@@ -1,11 +1,9 @@
 package com.marcinferenc.emp.backend.adapter.persistence.service;
 
-import com.marcinferenc.emp.backend.adapter.persistence.converter.CouponClaimRequestPersistenceConverter;
 import com.marcinferenc.emp.backend.adapter.persistence.converter.CouponClaimResponsePersistenceConverter;
 import com.marcinferenc.emp.backend.adapter.persistence.converter.CouponCreationRequestPersistenceConverter;
 import com.marcinferenc.emp.backend.adapter.persistence.converter.CouponCreationResponsePersistenceConverter;
 import com.marcinferenc.emp.backend.adapter.persistence.model.CouponBO;
-import com.marcinferenc.emp.backend.adapter.persistence.model.CouponClaimRequestPO;
 import com.marcinferenc.emp.backend.adapter.persistence.model.CouponClaimResponsePO;
 import com.marcinferenc.emp.backend.adapter.persistence.model.CouponCreationRequestPO;
 import com.marcinferenc.emp.backend.adapter.persistence.model.CouponCreationResponsePO;
@@ -17,7 +15,6 @@ import com.marcinferenc.emp.backend.domain.model.CouponCreationResponseDO;
 import com.marcinferenc.emp.backend.domain.model.CouponDO;
 import com.marcinferenc.emp.backend.rest.ErrorCode;
 import com.marcinferenc.emp.backend.rest.model.CouponException;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,7 +22,6 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
 @Service
 @RequiredArgsConstructor
@@ -37,7 +33,6 @@ public class CouponPersistenceServiceImpl implements CouponPersistenceService {
     private final CouponCreationRequestPersistenceConverter couponCreationRequestPersistenceConverter;
     private final CouponCreationResponsePersistenceConverter couponCreationResponsePersistenceConverter;
 
-    private final CouponClaimRequestPersistenceConverter couponClaimRequestPersistenceConverter;
     private final CouponClaimResponsePersistenceConverter couponClaimResponsePersistenceConverter;
 
     @Override
@@ -71,8 +66,8 @@ public class CouponPersistenceServiceImpl implements CouponPersistenceService {
     @Override
     public CouponClaimResponseDO claim(CouponClaimRequestDO couponClaimRequestDO) {
         try {
-            CouponClaimRequestPO couponClaimRequestPO = couponClaimRequestPersistenceConverter.toPersistenceObject(couponClaimRequestDO);
-            final String requestedCouponCode = couponClaimRequestPO.getCouponCode();
+            final String requestedCouponCode = couponClaimRequestDO.getCouponCode();
+            String userEmailId = couponClaimRequestDO.getUserEmailId();
 
             CouponBO couponBO = transactionTemplate.execute(
                 status -> performClaimUpdateTransaction(couponClaimRequestDO, requestedCouponCode));
@@ -82,10 +77,10 @@ public class CouponPersistenceServiceImpl implements CouponPersistenceService {
             String retrievedCountryCode = couponBO.getCountryCode();
 
             CouponClaimResponsePO result = createClaimResult(
-                couponClaimRequestPO,
                 couponBO,
                 requestedCouponCode,
                 retrievedCountryCode,
+                userEmailId,
                 updatedClaimCount,
                 claimLimitCount);
 
@@ -97,15 +92,15 @@ public class CouponPersistenceServiceImpl implements CouponPersistenceService {
         }
     }
 
-    private CouponClaimResponsePO createClaimResult(CouponClaimRequestPO couponClaimRequestPO,
-                                                           CouponBO couponBO,
-                                                           String requestedCouponCode,
-                                                           String retrievedCountryCode,
-                                                           Integer updatedClaimCount,
-                                                           Integer claimLimitCount) {
+    private CouponClaimResponsePO createClaimResult(CouponBO couponBO,
+                                                    String requestedCouponCode,
+                                                    String retrievedCountryCode,
+                                                    String userEmailId,
+                                                    Integer updatedClaimCount,
+                                                    Integer claimLimitCount) {
         return CouponClaimResponsePO.builder()
             .status(CouponResponseStatusPO.SUCCESS)
-            .userEmailId(couponClaimRequestPO.getUserEmailId())
+            .userEmailId(userEmailId)
             .couponCode(couponBO.getCouponCode())
             .timestamp(Instant.now())
             .message(String.format("Coupon code: %s, countryCode: %s claimed OK: %d -> %d / %d",
