@@ -6,6 +6,7 @@ import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.transaction.support.TransactionTemplate;
 
 @SpringBootTest(properties = {
 		"spring.autoconfigure.exclude="
@@ -25,6 +26,11 @@ class CouponBackendApplicationTests {
 		@Bean
 		CouponRepository couponRepository() {
 			return Mockito.mock(CouponRepository.class);
+		}
+
+		@Bean
+		TransactionTemplate transactionTemplate() {
+			return Mockito.mock(TransactionTemplate.class);
 		}
 	}
 

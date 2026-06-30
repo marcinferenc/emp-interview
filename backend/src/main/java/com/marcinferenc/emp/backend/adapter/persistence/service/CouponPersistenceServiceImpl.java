@@ -21,6 +21,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.Instant;
 import java.util.List;
@@ -28,9 +29,9 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@Transactional
 public class CouponPersistenceServiceImpl implements CouponPersistenceService {
     private final CouponRepository couponRepository;
+    private final TransactionTemplate transactionTemplate;
 
     private final CouponCreationRequestPersistenceConverter couponCreationRequestPersistenceConverter;
     private final CouponCreationResponsePersistenceConverter couponCreationResponsePersistenceConverter;
@@ -39,6 +40,7 @@ public class CouponPersistenceServiceImpl implements CouponPersistenceService {
     private final CouponClaimResponsePersistenceConverter couponClaimResponsePersistenceConverter;
 
     @Override
+    @Transactional
     public CouponCreationResponseDO create(CouponCreationRequestDO couponCreationRequestDO) {
         CouponCreationRequestPO couponCreationRequestPO = couponCreationRequestPersistenceConverter.toPersistenceObject(couponCreationRequestDO);
 
@@ -67,39 +69,64 @@ public class CouponPersistenceServiceImpl implements CouponPersistenceService {
     public CouponClaimResponseDO claim(CouponClaimRequestDO couponClaimRequestDO) {
         try {
             CouponClaimRequestPO couponClaimRequestPO = couponClaimRequestPersistenceConverter.toPersistenceObject(couponClaimRequestDO);
+            final String requestedCouponCode = couponClaimRequestPO.getCouponCode();
 
-            final String couponCode = couponClaimRequestPO.getCouponCode();
-            int updatedRows = couponRepository.incrementClaimCountIfBelowLimit(couponCode);
-            CouponBO couponBO = couponRepository.findByCouponCode(couponCode)
-                .orElseThrow(() -> createCouponNotFoundException(couponClaimRequestDO));
-
-            log.trace("Found coupon: {}", couponBO);
-
-            if (updatedRows == 0) {
-                throwClaimLimitExceeded(couponBO);
-            }
+            CouponBO couponBO = transactionTemplate.execute(
+                status -> performClaimUpdateTransaction(couponClaimRequestDO, requestedCouponCode));
 
             Integer updatedClaimCount = couponBO.getClaimCount();
             Integer claimLimitCount = couponBO.getClaimLimitCount();
-            String countryCode = couponBO.getCountryCode();
-            CouponClaimResponsePO result = CouponClaimResponsePO.builder()
-                .status(CouponResponseStatusPO.SUCCESS)
-                .userEmailId(couponClaimRequestPO.getUserEmailId())
-                .couponCode(couponBO.getCouponCode())
-                .timestamp(Instant.now())
-                .message(String.format("Coupon code: %s, countryCode: %s claimed OK: %d -> %d / %d",
-                    couponCode,
-                    countryCode,
-                    updatedClaimCount - 1,
-                    updatedClaimCount,
-                    claimLimitCount))
-                .build();
+            String retrievedCountryCode = couponBO.getCountryCode();
+
+            CouponClaimResponsePO result = createClaimResult(
+                couponClaimRequestPO,
+                couponBO,
+                requestedCouponCode,
+                retrievedCountryCode,
+                updatedClaimCount,
+                claimLimitCount);
 
             return couponClaimResponsePersistenceConverter.toDomainObject(result);
+
         } catch (Exception e) {
             log.error("Error while claiming coupon {}", couponClaimRequestDO.getCouponCode(), e);
             throw e;
         }
+    }
+
+    private CouponClaimResponsePO createClaimResult(CouponClaimRequestPO couponClaimRequestPO,
+                                                           CouponBO couponBO,
+                                                           String requestedCouponCode,
+                                                           String retrievedCountryCode,
+                                                           Integer updatedClaimCount,
+                                                           Integer claimLimitCount) {
+        return CouponClaimResponsePO.builder()
+            .status(CouponResponseStatusPO.SUCCESS)
+            .userEmailId(couponClaimRequestPO.getUserEmailId())
+            .couponCode(couponBO.getCouponCode())
+            .timestamp(Instant.now())
+            .message(String.format("Coupon code: %s, countryCode: %s claimed OK: %d -> %d / %d",
+                requestedCouponCode,
+                retrievedCountryCode,
+                updatedClaimCount - 1,
+                updatedClaimCount,
+                claimLimitCount))
+            .build();
+    }
+
+    private CouponBO performClaimUpdateTransaction(CouponClaimRequestDO couponClaimRequestDO, String couponCode) {
+        int updatedRows = couponRepository.incrementClaimCountIfBelowLimit(couponCode);
+        couponRepository.flush();
+        CouponBO couponBO = couponRepository.findByCouponCode(couponCode)
+            .orElseThrow(() -> createCouponNotFoundException(couponClaimRequestDO));
+
+        log.trace("Found coupon: {}", couponBO);
+
+        if (updatedRows == 0) {
+            throwClaimLimitExceeded(couponBO);
+        }
+
+        return couponBO;
     }
 
     @Override
@@ -118,6 +145,9 @@ public class CouponPersistenceServiceImpl implements CouponPersistenceService {
         return allCouponBOs;
     }
     //------------------------------------------------------
+
+    private record ClaimUpdateResult(CouponBO couponBO) {
+    }
 
     private CouponException createCouponNotFoundException(CouponClaimRequestDO couponClaimRequestDO) {
         String couponCode = couponClaimRequestDO.getCouponCode();
