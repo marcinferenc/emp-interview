@@ -25,6 +25,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Service
 @RequiredArgsConstructor
@@ -40,7 +41,6 @@ public class CouponPersistenceServiceImpl implements CouponPersistenceService {
     private final CouponClaimResponsePersistenceConverter couponClaimResponsePersistenceConverter;
 
     @Override
-    @Transactional
     public CouponCreationResponseDO create(CouponCreationRequestDO couponCreationRequestDO) {
         CouponCreationRequestPO couponCreationRequestPO = couponCreationRequestPersistenceConverter.toPersistenceObject(couponCreationRequestDO);
 
@@ -52,11 +52,14 @@ public class CouponPersistenceServiceImpl implements CouponPersistenceService {
             .createdAt(couponCreationRequestPO.getCreatedAt())
             .build();
 
-        CouponBO persistedCoupon = null;
         CouponCreationResponsePO couponCreationResponsePO = null;
+        CouponBO persistedCoupon = transactionTemplate.execute(status -> {
+            couponRepository.save(couponBO);
+            couponRepository.flush();
+            return couponBO;
+        });
 
-        persistedCoupon = couponRepository.save(couponBO);
-        log.info("Saved coupon: {}", persistedCoupon);
+        log.info("persisted coupon: {}", persistedCoupon);
         couponCreationResponsePO = CouponCreationResponsePO.builder()
             .status(CouponResponseStatusPO.SUCCESS)
             .message(String.format("Coupon created OK: %s", persistedCoupon))
